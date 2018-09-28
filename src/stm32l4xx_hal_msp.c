@@ -121,17 +121,17 @@ void HAL_TIM_Base_MspInit (TIM_HandleTypeDef *htim)
   /*##-1- Enable peripherals and GPIO Clocks #################################*/
   /* TIMx Peripheral clock enable */
  
-__HAL_RCC_TIM3_CLK_ENABLE(); //this is defined in stm32f4xx_hal_rcc.h
+__HAL_RCC_TIM2_CLK_ENABLE(); //this is defined in stm32f4xx_hal_rcc.h
 	
 	
   /*##-2- Configure the NVIC for TIMx ########################################*/
   /* Set the TIMx priority */
-	HAL_NVIC_SetPriority(TIM3_IRQn, 1, 0);  //in _hal.c, the priority group is set to 4. 
+	HAL_NVIC_SetPriority(TIM2_IRQn, 1, 0);  //in _hal.c, the priority group is set to 4. 
 																					//so the range of the preemption priority is 0-15, while the range of the sub_priority is 0
 																					//here set is as 1, leave 0 to systick, as systick interrupt may case troubles. 
   
   /* Enable the TIMx global Interrupt */
-	HAL_NVIC_EnableIRQ(TIM3_IRQn);
+	HAL_NVIC_EnableIRQ(TIM2_IRQn);
 }
 
 //configure the 

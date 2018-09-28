@@ -66,9 +66,9 @@ this starter project:
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 
-TIM_HandleTypeDef    Tim3_Handle,Tim4_Handle;
+TIM_HandleTypeDef    Tim3_Handle,Tim4_Handle,Tim2_Handle;
 TIM_OC_InitTypeDef Tim4_OCInitStructure;
-uint16_t Tim3_PrescalerValue,Tim4_PrescalerValue;
+uint16_t Tim3_PrescalerValue,Tim4_PrescalerValue,Tim2_PrescalerValue;
 
 __IO uint16_t Tim4_CCR; // the pulse of the TIM4
 __O uint8_t factor = 0;
@@ -86,6 +86,7 @@ DigitPosition_Typedef charPosition;
 void SystemClock_Config(void);
 static void EXTI0_Config(void);
 static void Error_Handler(void);
+void TIM2_Config(void);
 void TIM3_Config(void);
 void TIM4_Config(void);
 void TIM4_OC_Config(void);
@@ -136,7 +137,7 @@ int main(void)
 	 
   //EXTI0_Config();
 
-	TIM3_Config();
+	TIM2_Config();
 	
 	TIM4_Config();
 	
@@ -248,6 +249,38 @@ static void EXTI0_Config(void)
 }
 */
 
+void  TIM2_Config(void)
+{  
+  
+  /* Compute the prescaler value to have TIM3 counter clock equal to 10 KHz */
+  Tim2_PrescalerValue = (uint16_t) (SystemCoreClock/ 10000) - 1;
+  
+  /* Set TIM3 instance */
+  Tim2_Handle.Instance = TIM2; //TIM2 is defined in stm32f429xx.h
+ 
+  Tim2_Handle.Init.Period = 5000 - 1;
+  Tim2_Handle.Init.Prescaler = Tim2_PrescalerValue;
+  Tim2_Handle.Init.ClockDivision = 0;
+  Tim2_Handle.Init.CounterMode = TIM_COUNTERMODE_UP;
+  if(HAL_TIM_Base_Init(&Tim2_Handle) != HAL_OK) // this line need to call the callback function _MspInit() in stm32f4xx_hal_msp.c to set up peripheral clock and NVIC..
+  {
+    /* Initialization Error */
+    Error_Handler();
+  }
+  
+  /*##-2- Start the TIM Base generation in interrupt mode ####################*/
+  /* Start Channel1 */
+  if(HAL_TIM_Base_Start_IT(&Tim2_Handle) != HAL_OK)   //the TIM_XXX_Start_IT function enable IT, and also enable Timer
+																											//so do not need HAL_TIM_BASE_Start() any more.
+  {
+    /* Starting Error */
+    Error_Handler();
+  }
+	
+	
+	
+}
+
 void  TIM3_Config(void)
 {
 
@@ -307,7 +340,7 @@ void  TIM4_Config(void)
   /* Compute the prescaler value to have TIM3 counter clock equal to 10 KHz */
   Tim4_PrescalerValue = (uint16_t) (SystemCoreClock/ 10000) - 1;
   
-  /* Set TIM3 instance */
+  /* Set TIM4 instance */
   Tim4_Handle.Instance = TIM4; 
 	Tim4_Handle.Init.Period = 40000;
   Tim4_Handle.Init.Prescaler = Tim4_PrescalerValue;
