@@ -66,11 +66,11 @@ this starter project:
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 
-TIM_HandleTypeDef    Tim3_Handle,Tim4_Handle;
-TIM_OC_InitTypeDef Tim4_OCInitStructure;
-uint16_t Tim3_PrescalerValue,Tim4_PrescalerValue;
+TIM_HandleTypeDef    Tim3_Handle,Tim4_Handle,Tim2_Handle;
+TIM_OC_InitTypeDef Tim4_OCInitStructure,Tim2_OCInitStructure;
+uint16_t Tim3_PrescalerValue,Tim4_PrescalerValue,Tim2_PrescalerValue;
 
-__IO uint16_t Tim4_CCR; // the pulse of the TIM4
+__IO uint16_t Tim4_CCR,Tim2_CCR; // the pulse of the TIM4
 __O uint8_t factor = 0;
 
 
@@ -86,9 +86,11 @@ DigitPosition_Typedef charPosition;
 void SystemClock_Config(void);
 static void EXTI0_Config(void);
 static void Error_Handler(void);
+void TIM2_Config(void);
 void TIM3_Config(void);
 void TIM4_Config(void);
 void TIM4_OC_Config(void);
+void TIM2_OC_Config(void);
 
 
 /* Private functions ---------------------------------------------------------*/
@@ -136,12 +138,14 @@ int main(void)
 	 
   //EXTI0_Config();
 
+	TIM2_Config();
 	TIM3_Config();
+	//TIM4_Config();
 	
-	TIM4_Config();
-	
-	Tim4_CCR=5000;       //2 s to fire an interrupt.
-	TIM4_OC_Config();
+	Tim2_CCR=5000;				//Tim2 0.5s to fire an interrupt
+	Tim4_CCR=5000;       //Tim4 0.5 s to fire an interrupt.
+	TIM2_OC_Config();
+	//TIM4_OC_Config();
 
 	//BSP_LCD_GLASS_ScrollSentence(uint8_t* ptr, uint16_t nScroll, uint16_t ScrollSpeed);
 		BSP_LCD_GLASS_ScrollSentence((uint8_t*) "Gr.29   ", 2, 200);
@@ -248,6 +252,7 @@ static void EXTI0_Config(void)
 }
 */
 
+
 void  TIM3_Config(void)
 {
 
@@ -300,14 +305,60 @@ void  TIM3_Config(void)
 }
 
 
+
 // configure Timer4 base.
+void  TIM2_Config(void)
+{
+  
+  /* Compute the prescaler value to have TIM3 counter clock equal to 10 KHz */
+  Tim2_PrescalerValue = (uint16_t) (SystemCoreClock/ 10000) - 1;
+  
+  /* Set TIM4 instance */
+  Tim2_Handle.Instance = TIM2; 
+	Tim2_Handle.Init.Period = 40000;
+  Tim2_Handle.Init.Prescaler = Tim2_PrescalerValue;
+  Tim2_Handle.Init.ClockDivision = 0;
+  Tim2_Handle.Init.CounterMode = TIM_COUNTERMODE_UP;
+  //if(HAL_TIM_Base_Init(&Tim4_Handle) != HAL_OK)
+  //{
+    /* Initialization Error */
+  //  Error_Handler();
+  //} 
+}
+
+
+
+void  TIM2_OC_Config(void)
+{
+		Tim2_OCInitStructure.OCMode=  TIM_OCMODE_TIMING;
+		Tim2_OCInitStructure.Pulse=Tim2_CCR;
+		Tim2_OCInitStructure.OCPolarity=TIM_OCPOLARITY_HIGH;
+		
+		HAL_TIM_OC_Init(&Tim2_Handle); // if the TIM4 has not been set, then this line will call the callback function _MspInit() 
+													//in stm32f4xx_hal_msp.c to set up peripheral clock and NVIC.
+	
+		HAL_TIM_OC_ConfigChannel(&Tim2_Handle, &Tim2_OCInitStructure, TIM_CHANNEL_1); //must add this line to make OC work.!!!
+	
+	   /* **********see the top part of the hal_tim.c**********
+		++ HAL_TIM_OC_Init and HAL_TIM_OC_ConfigChannel: to use the Timer to generate an 
+              Output Compare signal. 
+			similar to PWD mode and Onepulse mode!!!
+	
+	*******************/
+	
+	 	HAL_TIM_OC_Start_IT(&Tim2_Handle, TIM_CHANNEL_1); //this function enable IT and enable the timer. so do not need
+				//HAL_TIM_OC_Start() any more
+				
+		
+}
+
 void  TIM4_Config(void)
 {
   
   /* Compute the prescaler value to have TIM3 counter clock equal to 10 KHz */
   Tim4_PrescalerValue = (uint16_t) (SystemCoreClock/ 10000) - 1;
   
-  /* Set TIM3 instance */
+  /* Set TIM4 instance */
   Tim4_Handle.Instance = TIM4; 
 	Tim4_Handle.Init.Period = 40000;
   Tim4_Handle.Init.Prescaler = Tim4_PrescalerValue;

@@ -141,14 +141,17 @@ void HAL_TIM_OC_MspInit (TIM_HandleTypeDef *htim)
   /* TIMx Peripheral clock enable */
  
 __HAL_RCC_TIM4_CLK_ENABLE(); //this is defined in stm32f4xx_hal_rcc.h
+__HAL_RCC_TIM2_CLK_ENABLE();
 	
 	
   /*##-2- Configure the NVIC for TIMx ########################################*/
   /* Set the TIMx priority */
 	HAL_NVIC_SetPriority(TIM4_IRQn, 1, 0);
+	HAL_NVIC_SetPriority(TIM2_IRQn, 1, 0);
   
   /* Enable the TIMx global Interrupt */
 	HAL_NVIC_EnableIRQ(TIM4_IRQn);
+	HAL_NVIC_EnableIRQ(TIM2_IRQn);
 }
 
 
