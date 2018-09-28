@@ -144,7 +144,7 @@ int main(void)
 	TIM4_OC_Config();
 
 	//BSP_LCD_GLASS_ScrollSentence(uint8_t* ptr, uint16_t nScroll, uint16_t ScrollSpeed);
-	BSP_LCD_GLASS_ScrollSentence((uint8_t*) " i need cock", 2, 200);
+		BSP_LCD_GLASS_ScrollSentence((uint8_t*) "Gr.29   ", 2, 200);
 	//BSP_LCD_GLASS_DisplayString((uint8_t*)"MT3TA4");	
 	//BSP_LCD_GLASS_DisplayChar(&aChar, singlePoint, doublePoint, charPosition);
 
@@ -353,19 +353,21 @@ void  TIM4_OC_Config(void)
   * @param GPIO_Pin: Specifies the pins connected EXTI line
   * @retval None
   */
+
+int j = 1;
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
   switch (GPIO_Pin) {
 			case GPIO_PIN_0: 		 //SEL_JOY_PIN    			
 							/* Toggle LED4 */
-							BSP_LED_Toggle(LED5);
-							BSP_LED_Toggle(LED4);
+							//BSP_LED_Toggle(LED4);
 							//BSP_LCD_GLASS_DisplayChar((uint8_t *)'A', singlePoint, doublePoint, 2);
+							j = 0;
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)"select");		
 
-							factor = (factor+1)%2;
-							__HAL_TIM_SET_COMPARE(&Tim4_Handle, TIM_CHANNEL_1, Tim4_CCR/(factor+1));
+							//factor = (factor+1)%2;
+							//__HAL_TIM_SET_COMPARE(&Tim4_Handle, TIM_CHANNEL_1, Tim4_CCR/(factor+1));
 							break;	
 			case GPIO_PIN_1: //LEFT_JOY_PIN  
 							/* Toggle LED4 */
@@ -415,33 +417,33 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)   //see  stm32fxx_ha
 
 int i = 0;
 void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef * htim) //see  stm32fxx_hal_tim.c for different callback function names. 
-{																																//for timer4 
-	//	if ((*htim).Instance==TIM4)
-			 
+{	
+																															//for timer4 
 	switch (j) {
 		case 0: switch (i) {
-							case 0: BSP_LED_On(LED5); 
+							case 0: BSP_LED_On(LED4);
 											break;
-							case 1: BSP_LED_Off(LED5);
+							case 1: BSP_LED_Off(LED4);
 											break;
-							case 2: BSP_LED_On(LED4);
+							case 2: BSP_LED_On(LED5);
 											break;
-							case 3: BSP_LED_Off(LED4);
+							case 3: BSP_LED_Off(LED5);
 											break;
-							i++;
-							if (i==4) i=0;
-							}
+						}
+					  i++;
+						if (i==4) i=0;
 						break;
-	 case 1: BSP_LED_Off(LED4);
-					 BSP_LED_Toggle(LED5);
-					 break;
-			 
-	
+		
+		case 1:
+			 BSP_LED_Off(LED4);
+			 BSP_LED_Toggle(LED5);
+			 break;
+	}
 		//clear the timer counter!  in stm32f4xx_hal_tim.c, the counter is not cleared after  OC interrupt
 		__HAL_TIM_SET_COUNTER(htim, 0x0000);   //this maro is defined in stm32f4xx_hal_tim.h
 
+		
 }
-
 
 static void Error_Handler(void)
 {
