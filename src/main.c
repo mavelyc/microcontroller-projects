@@ -144,7 +144,7 @@ int main(void)
 	TIM4_OC_Config();
 
 	//BSP_LCD_GLASS_ScrollSentence(uint8_t* ptr, uint16_t nScroll, uint16_t ScrollSpeed);
-	BSP_LCD_GLASS_ScrollSentence((uint8_t*) "  hello? is jazz there", 2, 200);
+	BSP_LCD_GLASS_ScrollSentence((uint8_t*) " i need dick", 2, 200);
 	//BSP_LCD_GLASS_DisplayString((uint8_t*)"MT3TA4");	
 	//BSP_LCD_GLASS_DisplayChar(&aChar, singlePoint, doublePoint, charPosition);
 
