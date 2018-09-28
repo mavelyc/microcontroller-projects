@@ -53,7 +53,7 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-extern TIM_HandleTypeDef    Tim3_Handle, Tim4_Handle;
+extern TIM_HandleTypeDef    Tim2_Handle, Tim3_Handle, Tim4_Handle;
 
 
 
@@ -215,6 +215,11 @@ void EXTI9_5_IRQHandler (void)
 //void EXTI5_IRQHandler (void)  //will not work!
 {
   HAL_GPIO_EXTI_IRQHandler(DOWN_JOY_PIN);  //PA5
+}
+
+void TIM2_IRQHandler(void)
+{
+  HAL_TIM_IRQHandler(&Tim2_Handle);
 }
 
 void TIM3_IRQHandler(void)
