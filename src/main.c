@@ -137,10 +137,12 @@ int main(void)
   }
 // then can write to or read from the emulated EEPROM
 	
+uint16_t val=5;
+if (!(EE_ReadVariable(0x5555, &val))){
+	BSP_LED_On(LED4);
+};
+	
 
-	
-	
-	
 	
 	
 	
@@ -158,6 +160,14 @@ Rng_Handle.Instance=RNG;  //Everytime declare a Handle, need to assign its Insta
   }
 //then can use RNG
 	
+	int value;
+	HAL_RNG_GenerateRandomNumber(RNG, &value);
+	
+
+	char str[12];
+	
+	sprintf(str,"%d",value);
+	BSP_LCD_GLASS_DisplayString((uint8_t*)str);
 	
 
   /* Infinite loop */
