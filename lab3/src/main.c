@@ -385,18 +385,17 @@ void RTC_Config(void) {
 	//****2.*****  Configure the RTC Prescaler (Asynchronous and Synchronous) and RTC hour 
         
 		
-		/************students: need to complete the following lines******************************
-		//**************************************************************************************				
-				RTCHandle.Instance = ???;
-				RTCHandle.Init.HourFormat = ???;
+	
+				RTCHandle.Instance = RTC;
+				RTCHandle.Init.HourFormat = RTC_HOURFORMAT_24;
 				
-				RTCHandle.Init.AsynchPrediv = ???; 
-				RTCHandle.Init.SynchPrediv = ???; 
+				RTCHandle.Init.AsynchPrediv = 125-1; 
+				RTCHandle.Init.SynchPrediv = 8000-1; 
 				
 				
-				RTCHandle.Init.OutPut = ???;
-				RTCHandle.Init.OutPutPolarity = ???;
-				RTCHandle.Init.OutPutType = ???;
+				RTCHandle.Init.OutPut = RTC_OUTPUT_DISABLE;
+				RTCHandle.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;
+				RTCHandle.Init.OutPutType = RTC_OUTPUT_TYPE_OPENDRAIN;
 				
 			
 				if(HAL_RTC_Init(&RTCHandle) != HAL_OK)
@@ -404,19 +403,17 @@ void RTC_Config(void) {
 					BSP_LCD_GLASS_Clear(); 
 					BSP_LCD_GLASS_DisplayString((uint8_t *)"RT I X"); 	
 				}
-	******************************************************************************************/
 	
 	
 	
-	//****3.***** init the time and date
+	
+	//****3.***** init the time and 
 				
-				
- 		/*****************Students: please complete the following lnes*****************************
-		//****************************************************************************************		
-				RTC_DateStructure.Year = ???
-				RTC_DateStructure.Month = ???
-				RTC_DateStructure.Date = ???
-				RTC_DateStructure.WeekDay = ???
+					
+				RTC_DateStructure.Year = 0;
+				RTC_DateStructure.Month = RTC_MONTH_OCTOBER;
+				RTC_DateStructure.Date = 1;
+				RTC_DateStructure.WeekDay = RTC_WEEKDAY_WEDNESDAY;
 				
 				if(HAL_RTC_SetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BIN) != HAL_OK)   //BIN format is better 
 															//before, must set in BCD format and read in BIN format!!
@@ -426,12 +423,12 @@ void RTC_Config(void) {
 				} 
   
   
-				RTC_TimeStructure.Hours = ???;  
-				RTC_TimeStructure.Minutes = ??? 
-				RTC_TimeStructure.Seconds = ???
-				RTC_TimeStructure.TimeFormat = ???
-				RTC_TimeStructure.DayLightSaving = ???
-				RTC_TimeStructure.StoreOperation = ???
+				RTC_TimeStructure.Hours = 0;  
+				RTC_TimeStructure.Minutes = 0; 
+				RTC_TimeStructure.Seconds = 0;
+				RTC_TimeStructure.TimeFormat = RTC_FORMAT_BIN;
+				RTC_TimeStructure.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+				RTC_TimeStructure.StoreOperation = RTC_STOREOPERATION_RESET;
 				
 				if(HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN) != HAL_OK)   //BIN format is better
 																																					//before, must set in BCD format and read in BIN format!!
@@ -440,7 +437,6 @@ void RTC_Config(void) {
 					BSP_LCD_GLASS_DisplayString((uint8_t *)"T I X");
 				}	
 	  
- ********************************************************************************/
 
 
 
@@ -573,7 +569,12 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			
 			case GPIO_PIN_5:    //down button						
 							BSP_LCD_GLASS_Clear();
-							BSP_LCD_GLASS_DisplayString((uint8_t*)"down");
+							char str1[4];
+							HAL_RTC_GetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BCD);
+							HAL_RTC_GetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BCD);
+							mm = RTC_TimeStructure.Seconds;
+							sprintf(str1,"%d",mm);
+							BSP_LCD_GLASS_DisplayString((uint8_t*)str1);
 							break;
 			case GPIO_PIN_14:    //down button						
 							BSP_LCD_GLASS_Clear();
