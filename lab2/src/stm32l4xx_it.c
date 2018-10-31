@@ -53,7 +53,7 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-extern TIM_HandleTypeDef Tim3_Handle;
+extern TIM_HandleTypeDef    Tim3_Handle,Tim4_Handle;
 
 
 
@@ -222,12 +222,12 @@ void EXTI15_10_IRQHandler (void)
 
 void TIM3_IRQHandler(void)
 {
-  HAL_TIM_IRQHandler(&Tim3_Handle);
+	HAL_TIM_IRQHandler(&Tim3_Handle);
 }
 
 void TIM4_IRQHandler(void)
 {
-
+	HAL_TIM_IRQHandler(&Tim4_Handle);
 }
 
 

@@ -54,14 +54,16 @@
 char lcd_buffer[6];    // LCD display buffer
 
 
-TIM_HandleTypeDef    Tim3_Handle;
+TIM_HandleTypeDef    Tim3_Handle,Tim4_Handle;
+TIM_OC_InitTypeDef Tim4_OCInitStructure;
 __IO HAL_StatusTypeDef Hal_status;  //HAL_ERROR, HAL_TIMEOUT, HAL_OK, of HAL_BUSY 
 uint16_t EE_status=0;
 uint16_t VirtAddVarTab[NB_OF_VAR] = {0x5555, 0x6666, 0x7777}; // the emulated EEPROM can save 3 varibles, at these three addresses.
 uint16_t EEREAD;  //to practice reading the BESTRESULT save in the EE, for EE read/write, require uint16_t type
-uint16_t Tim3_PrescalerValue;
+uint16_t Tim3_PrescalerValue, Tim4_PrescalerValue;
 
-
+__IO uint16_t Tim4_CCR;
+__O uint8_t factor = 0;
 
 RNG_HandleTypeDef Rng_Handle;
 
@@ -74,7 +76,11 @@ RNG_HandleTypeDef Rng_Handle;
 static void SystemClock_Config(void);
 static void Error_Handler(void);
 static void EXTI0_Config(void);
+static void EXTI1_Config(void);
 void TIM3_Config(void);
+void TIM4_Config(void);
+void TIM4_OC_Config(void);
+
 
 
 
@@ -108,21 +114,22 @@ int main(void)
 	BSP_LED_Init(LED4);
 	BSP_LED_Init(LED5);
 	BSP_LED_Off(LED4);
+	BSP_LED_Off(LED5);
+	BSP_JOY_Init(JOY_MODE_EXTI);
 	EXTI0_Config();
+	//EXTI1_Config();
 	TIM3_Config();
+	TIM4_Config();
+	Tim4_CCR= 5000;															// 0.5 s to fire an interrupt.
+	TIM4_OC_Config();
+
 
 	BSP_LCD_GLASS_Init();
 	
 
 	//BSP_LCD_GLASS_ScrollSentence((uint8_t*) "  mt3ta4 lab2 starter", 1, 200);
-	BSP_LCD_GLASS_DisplayString((uint8_t*)"MT3TA4");	
+	//BSP_LCD_GLASS_DisplayString((uint8_t*)"3TA4");	
 	
-
-
-
-
-
-
 
 	
 //******************* use emulated EEPROM ====================================
@@ -137,17 +144,16 @@ int main(void)
   }
 // then can write to or read from the emulated EEPROM
 	
-uint16_t val=5;
-if (!(EE_ReadVariable(0x5555, &val))){
-	BSP_LED_On(LED4);
-};
-	
+//uint16_t val=5,data; 																// EEPROM TEST CODE
+//EE_WriteVariable(0x5555, val);
+//char str_test1[4];
+//EE_ReadVariable(0x5555, &data);
+//sprintf(str_test1,"%d",data);
+//BSP_LCD_GLASS_Clear();
+//BSP_LCD_GLASS_DisplayString((uint8_t*)str_test1);
 
 	
-	
-	
-	
-	
+
 	
 //*********************use RNG ================================  
 Rng_Handle.Instance=RNG;  //Everytime declare a Handle, need to assign its Instance a base address. like the timer handles.... 													
@@ -158,26 +164,26 @@ Rng_Handle.Instance=RNG;  //Everytime declare a Handle, need to assign its Insta
   {
     Error_Handler();
   }
-//then can use RNG
+//then can use RNG															
 	
-	int value;
-	HAL_RNG_GenerateRandomNumber(RNG, &value);
+	//uint32_t rand;																					// RNG TEST CODE
+	//HAL_RNG_GenerateRandomNumber(&Rng_Handle, &rand);
+	//int max = 4000;
+	//rand = rand%(max+1);
 	
-
-	char str[12];
+	//char str_test2[4];
+	//sprintf(str_test2,"%d",rand);
+	//BSP_LCD_GLASS_Clear();
+	//BSP_LCD_GLASS_DisplayString((uint8_t*)str_test2);
 	
-	sprintf(str,"%d",value);
-	BSP_LCD_GLASS_DisplayString((uint8_t*)str);
-	
-
   /* Infinite loop */
   while (1)
   {
+			
 		
-
 	}
-}
 
+}
 /**
   * @brief  System Clock Configuration
   *         The system Clock is configured as follows :
@@ -262,8 +268,8 @@ void SystemClock_Config(void)
 void  TIM3_Config(void)
 {
   
-  /* Compute the prescaler value to have TIM3 counter clock equal to 10 KHz */
-  Tim3_PrescalerValue = (uint16_t) (SystemCoreClock/ 1) - 1;
+  /* Compute the prescaler value to have TIM3 counter clock equal to 5 Hz */
+  Tim3_PrescalerValue = (uint16_t) (SystemCoreClock/ 5) - 1;
   
   /* Set TIM3 instance */
   Tim3_Handle.Instance = TIM3; //TIM3 is defined in stm32f429xx.h
@@ -290,6 +296,50 @@ void  TIM3_Config(void)
 	
 	
 }
+void  TIM4_Config(void)
+{
+  
+  /* Compute the prescaler value to have TIM3 counter clock equal to 10 KHz */
+  Tim4_PrescalerValue = (uint16_t) (SystemCoreClock/ 10000) - 1;
+  
+  /* Set TIM3 instance */
+  Tim4_Handle.Instance = TIM4; 
+	Tim4_Handle.Init.Period = 40000;
+  Tim4_Handle.Init.Prescaler = Tim4_PrescalerValue;
+  Tim4_Handle.Init.ClockDivision = 0;
+  Tim4_Handle.Init.CounterMode = TIM_COUNTERMODE_UP;
+  //if(HAL_TIM_Base_Init(&Tim4_Handle) != HAL_OK)
+  //{
+    /* Initialization Error */
+  //  Error_Handler();
+  //} 
+}
+
+
+
+void  TIM4_OC_Config(void)
+{
+		Tim4_OCInitStructure.OCMode=  TIM_OCMODE_TIMING;
+		Tim4_OCInitStructure.Pulse=Tim4_CCR;
+		Tim4_OCInitStructure.OCPolarity=TIM_OCPOLARITY_HIGH;
+		
+		HAL_TIM_OC_Init(&Tim4_Handle); // if the TIM4 has not been set, then this line will call the callback function _MspInit() 
+													//in stm32f4xx_hal_msp.c to set up peripheral clock and NVIC.
+	
+		HAL_TIM_OC_ConfigChannel(&Tim4_Handle, &Tim4_OCInitStructure, TIM_CHANNEL_1); //must add this line to make OC work.!!!
+	
+	   /* **********see the top part of the hal_tim.c**********
+		++ HAL_TIM_OC_Init and HAL_TIM_OC_ConfigChannel: to use the Timer to generate an 
+              Output Compare signal. 
+			similar to PWD mode and Onepulse mode!!!
+	
+	*******************/
+	
+	 	HAL_TIM_OC_Start_IT(&Tim4_Handle, TIM_CHANNEL_1); //this function enable IT and enable the timer. so do not need
+				//HAL_TIM_OC_Start() any more
+				
+		
+}
 
 static void EXTI0_Config(void)
 {
@@ -310,49 +360,134 @@ static void EXTI0_Config(void)
 }
 
 
-
 /**
   * @brief EXTI line detection callbacks
   * @param GPIO_Pin: Specifies the pins connected EXTI line
   * @retval None
   */
+
+
+
+int state = 0, check = 0, count = 0;						// Initializing globals
+int max, delay, status;
+uint16_t hi_score, curr_score;
+char str1[20], str2[20], str3[20];
+
+
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-  switch (GPIO_Pin) {
-			case GPIO_PIN_0: 		               //SELECT button					
-						BSP_LCD_GLASS_DisplayString((uint8_t*)"select");
-						break;	
-			case GPIO_PIN_1:     //left button						
-						
-							break;
-			case GPIO_PIN_2:    //right button						  to play again.
-					
-							break;
-			case GPIO_PIN_3:    //up button							
-					
-							break;
+	switch (GPIO_Pin) {
+		case GPIO_PIN_0: 		               //SELECT button used for reset				
+			state = 0;
+			break;
 			
-			case GPIO_PIN_5:    //down button						
-					
-							break;
-			default://
-						//default
-						break;
-	  } 
+		case GPIO_PIN_3:									//UP button used to initialize reflex test
+			state = 1;
+			break;
+		
+		case GPIO_PIN_5:
+			state = 5;											//DOWN button used to complete relfex test
+			break;
+		
+		case GPIO_PIN_2:									//RIGHT button used to display best time
+			state = 6;
+			break;
+		
+		default:
+			break;
+	} 
 }
 
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)   //see  stm32lxx_hal_tim.c for different callback function names. 
 																															//for timer 3 , Timer 3 use update event initerrupt
 {
-	BSP_LED_Toggle(LED5);
-	
+
 }
 
 
 void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef * htim) //see  stm32fxx_hal_tim.c for different callback function names. 
-{																																//for timer4 
-	BSP_LED_Toggle(LED5);
+{
+
+																											//for timer4 
+		switch (state) {
+		case 0:																										// --- RESET STATE ---
+			Tim4_CCR = 5000;																				// Re-set Clock to original rate
+			TIM4_OC_Config();																				// Re-configure clock
+			HAL_TIM_OC_Start_IT(&Tim4_Handle, TIM_CHANNEL_1);
+		
+			BSP_LCD_GLASS_Clear();																	// State display for troubleshooting
+			BSP_LCD_GLASS_DisplayString((uint8_t*)"START"); 
+		
+			BSP_LED_Toggle(LED4);
+			BSP_LED_Toggle(LED5);
+	
+			break;
+		
+		case 1:																										// --- TIMER UPDATE ---
+			BSP_LCD_GLASS_Clear();		
+			BSP_LED_Off(LED4);
+			BSP_LED_Off(LED5);
+		
+			uint32_t rand;
+			HAL_RNG_GenerateRandomNumber(&Rng_Handle, &rand);				// Random number generation
+			max = 4000;																							// max delay
+			delay = rand%(max+1);                                   // Delay is random number between 0-4000 ms
+			
+			Tim4_CCR = 10;																					// Set Clock to fire interrupt every 1 ms
+			TIM4_OC_Config();																				// Re-configure clock
+			HAL_TIM_OC_Start_IT(&Tim4_Handle, TIM_CHANNEL_1);
+		
+			state++;
+			break;
+		
+		case 2:																										// --- RANDOM DELAY ---																					
+			//sprintf(str1,"%d",check);															// Output to LCD for debugging
+			//BSP_LCD_GLASS_Clear();
+			//BSP_LCD_GLASS_DisplayString((uint8_t*)str1);  
+		
+			if (check == delay) {
+				state++;																							// Moves to next state once delay is reached
+				break;													
+			}
+			check ++;																								// Increments check every clock cycle (1 ms)
+			break;
+			
+		case 3:																										// LEDs ON
+			BSP_LED_On(LED5);
+			BSP_LED_On(LED4);
+			state++;
+			break;
+		
+		case 4:																										// --- TIMER ---
+			sprintf(str1,"%d",count);
+			BSP_LCD_GLASS_Clear();
+			BSP_LCD_GLASS_DisplayString((uint8_t*)str1);   
+			count ++;																								// Increment check every clock cycle, until next state is triggered by user
+			break;	
+		
+		case 5:																										// --- STORING ---
+			if (count == 0) {
+				state = 0;																						// Cheat Check
+				break;
+			}
+			curr_score = count;																			// Reflex time is the count, in unit ms															
+			sprintf(str3,"%d",curr_score);
+			BSP_LCD_GLASS_Clear();
+			BSP_LCD_GLASS_DisplayString((uint8_t*)str3);		
+			status = EE_ReadVariable(0x5555, &hi_score);
+			if (status == 1 || curr_score < hi_score) EE_WriteVariable(0x5555, curr_score); // Stores current score as highscore if:
+																																											//  1. Current score is better than Highscore or
+			break;																																					//  2. There is no Highscore
+		
+		case 6:																										// --- DISPLAY CURRENT HIGHSCORE --
+			status = EE_ReadVariable(0x5555, &hi_score);
+			if (status == 1) BSP_LCD_GLASS_DisplayString((uint8_t*)"NO CURRENT HIGSCORE");
+			sprintf(str2,"%d",hi_score);
+			BSP_LCD_GLASS_Clear();	
+			BSP_LCD_GLASS_DisplayString((uint8_t*)str2);	
+		break;
+	}
 		//clear the timer counter at the end of call back to avoid interrupt interval variation!  in stm32l4xx_hal_tim.c, the counter is not cleared after  OC interrupt
 		__HAL_TIM_SET_COUNTER(htim, 0x0000);   //this macro is defined in stm32l4xx_hal_tim.h
 
