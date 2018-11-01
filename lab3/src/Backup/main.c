@@ -94,13 +94,7 @@ static void Error_Handler(void);
 
 void RTC_Config(void);
 void RTC_AlarmAConfig(void);
-
-// Custom private function prototypes
-void RTC_Clock_Enable(void);
-void RTC_Clock_Disable(void);
 void RTC_TimeShow(void);
-void RTC_DateShow(void);
-void PushButton_Config(void);
 
 
 /* Private functions ---------------------------------------------------------*/
@@ -140,10 +134,12 @@ int main(void)
 											
 	
 	HAL_InitTick(0x0000); //set the systick interrupt priority to the highest, !!!This line need to be after systemClock_config()
+
 	
-	BSP_LCD_GLASS_Init();	
+	BSP_LCD_GLASS_Init();
+	
 	BSP_JOY_Init(JOY_MODE_EXTI);
-	PushButton_Config();
+
 	BSP_LCD_GLASS_DisplayString((uint8_t*)"MT3TA4");	
 	HAL_Delay(1000);
 
@@ -229,14 +225,9 @@ int main(void)
 			if (BSP_JOY_GetState() == JOY_SEL) {
 					SEL_Pressed_StartTick=HAL_GetTick(); 
 					while(BSP_JOY_GetState() == JOY_SEL) {  //while the selection button is pressed)	
-						if ((HAL_GetTick()-SEL_Pressed_StartTick)>800) {
-								BSP_LED_On(LED4);
-								BSP_LED_Off(LED5);
-								RTC_DateShow();
-								BSP_LED_Off(LED4);
+						if ((HAL_GetTick()-SEL_Pressed_StartTick)>800) {					
+						} 
 					}
-				}
-				
 			}					
 //==============================================================			
 
@@ -265,6 +256,7 @@ int main(void)
 
 //==============================================================						
 			//switch (myState) { 
+				
 				
 				
 			//} //end of switch					
@@ -395,8 +387,8 @@ void RTC_Config(void) {
 				RTCHandle.Instance = RTC;
 				RTCHandle.Init.HourFormat = RTC_HOURFORMAT_24;
 				
-				RTCHandle.Init.AsynchPrediv = 0x7F;
-				RTCHandle.Init.SynchPrediv = 0xFF; 
+				RTCHandle.Init.AsynchPrediv = 125-1; 
+				RTCHandle.Init.SynchPrediv = 8000-1; 
 				
 				
 				RTCHandle.Init.OutPut = RTC_OUTPUT_DISABLE;
@@ -572,9 +564,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 							BSP_LCD_GLASS_DisplayString((uint8_t*)"down");
 							break;
 			case GPIO_PIN_14:    //down button						
-							//BSP_LCD_GLASS_Clear();
-							//BSP_LCD_GLASS_DisplayString((uint8_t*)"PE14");
-							RTC_DateShow();
+							BSP_LCD_GLASS_Clear();
+							BSP_LCD_GLASS_DisplayString((uint8_t*)"PE14");
 							break;			
 			default://
 						//default
@@ -583,61 +574,20 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 }
 
 
-
+void RTC_TimeShow(void) {
+	HAL_RTC_GetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BCD);
+	HAL_RTC_GetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BCD);
+	char str1[20];
+	sprintf(str1,"%d:%d:%d",RTC_TimeStructure.Hours,RTC_TimeStructure.Minutes,RTC_TimeStructure.Seconds);
+	BSP_LCD_GLASS_Clear();
+	BSP_LCD_GLASS_DisplayString((uint8_t*)str1);
+}
 
 void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)
 {
   BSP_LED_Toggle(LED5);
-	RTC_TimeShow();
+	//RTC_TimeShow();
 	
-}
-
-void RTC_Clock_Enable(void)
-{
-RTC_AlarmA_IT_Enable(&RTCHandle);
-}
-
-void RTC_Clock_Disable(void)
-{
-RTC_AlarmA_IT_Disable(&RTCHandle);
-}
-
-
-void RTC_TimeShow(void)
-{
-	HAL_RTC_GetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BCD);
-	HAL_RTC_GetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BCD);
-	char TimeStamp[20];
-	sprintf(TimeStamp,"%d:%d:%d",RTC_TimeStructure.Hours,RTC_TimeStructure.Minutes,RTC_TimeStructure.Seconds);
-	BSP_LCD_GLASS_Clear();
-	BSP_LCD_GLASS_DisplayString((uint8_t*)TimeStamp);
-}
-
-void RTC_DateShow(void)
-{
-	RTC_Clock_Disable();
-	HAL_RTC_GetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BCD);
-	HAL_RTC_GetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BCD);
-	char DateStamp[20];
-	sprintf(DateStamp,"   Day-%d, Date-%d, Month-%d, Year-%d",RTC_DateStructure.Date,RTC_DateStructure.Date,RTC_DateStructure.Month,RTC_DateStructure.Year);
-	BSP_LCD_GLASS_Clear();
-	//BSP_LCD_GLASS_DisplayString((uint8_t*)DateStamp);
-	BSP_LCD_GLASS_ScrollSentence((uint8_t*)DateStamp,1,400);
-	RTC_Clock_Enable();
-}
-
-void PushButton_Config(void)
-{
-	__HAL_RCC_GPIOE_CLK_ENABLE();
-	GPIO_InitTypeDef GPIO_InitStruct;
-	GPIO_InitStruct.Pin = GPIO_PIN_14;
-	GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-	HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
-	
-	HAL_NVIC_SetPriority((IRQn_Type)(EXTI15_10_IRQn), 0x0F, 0x00);
-	HAL_NVIC_EnableIRQ((IRQn_Type)(EXTI15_10_IRQn));
 }
 
 static void Error_Handler(void)
