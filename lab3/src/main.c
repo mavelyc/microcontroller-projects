@@ -75,7 +75,7 @@ __IO HAL_StatusTypeDef Hal_status;  //HAL_ERROR, HAL_TIMEOUT, HAL_OK, of HAL_BUS
 
 //memory location to write to in the device
 __IO uint16_t memLocation = 0x000A; //pick any location within range
-
+__IO uint16_t mem;
   
 
 char lcd_buffer[6];    // LCD display buffer
@@ -110,10 +110,12 @@ void Get_Weekday(uint8_t WDAY);
 void Get_Month(uint8_t MONTH);
 int state, Mode_SetTime;
 void DisplayState(int state);
+void ReadEE (void);
 
 
 //cmave inits
 int push13_pressed;
+int count;
 
 
 
@@ -146,6 +148,8 @@ int main(void)
 	push14_pressed=0;
 	Mode_SetTime = 0;
 	state=0;
+	count=0;
+	mem=memLocation;
 
 	push13_pressed =0;
 	
@@ -156,6 +160,7 @@ int main(void)
 	BSP_LED_Init(LED5);
   
 	SystemClock_Config();   
+	
 											
 	
 	HAL_InitTick(0x0000); //set the systick interrupt priority to the highest, !!!This line need to be after systemClock_config()
@@ -286,6 +291,10 @@ int main(void)
 					DisplayState(state);
 					leftpressed=0;
 				}
+				
+				BSP_LCD_GLASS_Clear();
+				ReadEE();
+				leftpressed=0;
 			}			
 //==============================================================			
 
@@ -319,14 +328,25 @@ int main(void)
 			
 			
 			if (push13_pressed==1){
+				HAL_RTC_GetTime(&RTCHandle, &RTC_TimeStructure, RTC_FORMAT_BIN);
+				HAL_RTC_GetDate(&RTCHandle, &RTC_DateStructure, RTC_FORMAT_BIN);
+				BSP_LCD_GLASS_Clear();
+				BSP_LCD_GLASS_DisplayString((uint8_t*)"SAVED");
+				HAL_Delay(1500);
 				EE_status=I2C_ByteWrite(&pI2c_Handle,EEPROM_ADDRESS, memLocation, RTC_TimeStructure.Seconds);
+				if(EE_status == HAL_OK)
+  {
+    BSP_LED_On(LED4);  
+	}
+				HAL_Delay(10);
 				memLocation++;
 				EE_status=I2C_ByteWrite(&pI2c_Handle,EEPROM_ADDRESS, memLocation, RTC_TimeStructure.Minutes);
+				HAL_Delay(10);
 				memLocation++;
 				EE_status=I2C_ByteWrite(&pI2c_Handle,EEPROM_ADDRESS, memLocation, RTC_TimeStructure.Hours);
-				memLocation++;
-				
-				
+				HAL_Delay(10);
+				memLocation++;	
+				push13_pressed=0;
 			}
 			
 			
@@ -430,8 +450,8 @@ int main(void)
 							downpressed =0;
 						}
 						break;
-						
-						case 5: 
+					
+						case 6: 
 						if (uppressed == 1) {
 							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds++)%59;
 							sprintf(output,"%d",RTC_TimeStructure.Seconds);
@@ -449,7 +469,7 @@ int main(void)
 							downpressed =0;
 						}
 						
-						case 1: 
+						case 7: 
 						if (uppressed == 1) {
 							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds++)%59;
 							sprintf(output,"%d",RTC_TimeStructure.Seconds);
@@ -494,12 +514,28 @@ int main(void)
 
 
 void ReadEE (void){
-	hh=I2C_ByteRead(&pI2c_Handle,EEPROM_ADDRESS, memLocation-1);
-	mm=I2C_ByteRead(&pI2c_Handle,EEPROM_ADDRESS, memLocation-2);
-	ss=I2C_ByteRead(&pI2c_Handle,EEPROM_ADDRESS, memLocation-3);
+	RTC_Clock_Disable();
+	//HAL_RTC_GetTime(&RTCHandle, &RTC_TimeStructure, RTC_FORMAT_BIN);
+  //HAL_RTC_GetDate(&RTCHandle, &RTC_DateStructure, RTC_FORMAT_BIN);
+	hh=I2C_ByteRead(&pI2c_Handle,EEPROM_ADDRESS, memLocation-4);
+	HAL_Delay(10);
+	mm=I2C_ByteRead(&pI2c_Handle,EEPROM_ADDRESS, memLocation-5);
+	HAL_Delay(10);
+	ss=I2C_ByteRead(&pI2c_Handle,EEPROM_ADDRESS, memLocation-6);
+	HAL_Delay(10);
+	sprintf(output,"    TIME1=%02d%02d%02d",hh,mm,ss);
 	BSP_LCD_GLASS_Clear();
-	sprintf(output,"%02d%02d%02d",hh,mm,ss);
-	BSP_LCD_GLASS_DisplayString((uint8_t*)output);
+	BSP_LCD_GLASS_ScrollSentence((uint8_t*)output,1,300);
+	BSP_LCD_GLASS_Clear();
+	hh=I2C_ByteRead(&pI2c_Handle,EEPROM_ADDRESS, memLocation-1);
+	HAL_Delay(10);
+	mm=I2C_ByteRead(&pI2c_Handle,EEPROM_ADDRESS, memLocation-2);
+	HAL_Delay(10);
+	ss=I2C_ByteRead(&pI2c_Handle,EEPROM_ADDRESS, memLocation-3);
+	HAL_Delay(10);
+	sprintf(output,"     TIME2=%02d%02d%02d",hh,mm,ss);
+	BSP_LCD_GLASS_ScrollSentence((uint8_t*)output,1,300);
+	RTC_Clock_Enable();
 
 
 }
@@ -769,6 +805,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 						break;	
 			case GPIO_PIN_1:     //left button						
 						leftpressed=1;
+						count= (count+1)%3;
 						break;
 			case GPIO_PIN_2:    //right button						  to play again.
 						rightpressed=1;			
@@ -784,7 +821,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 						push14_pressed=1;
 						break;	
 			case GPIO_PIN_13:
-						RTC_Clock_Disable();
 						push13_pressed=1;
 			default://
 						//default
