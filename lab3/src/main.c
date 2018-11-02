@@ -105,6 +105,7 @@ void RTC_DateShow(void);
 void PushButton_Config(void);
 char weekday[20];
 void Get_Weekday(uint8_t WDAY);
+int wasteyute;
 int state, trav;
 
 
