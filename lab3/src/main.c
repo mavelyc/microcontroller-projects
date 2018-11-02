@@ -250,21 +250,17 @@ int main(void)
 								BSP_LED_On(LED4);
 								BSP_LED_Off(LED5);
 								RTC_DateShow();
-								
-								//HAL_Delay(1000);
 								BSP_LED_Off(LED4);
+								RTC_Clock_Enable();
 								break;
 					}
-				//BSP_LCD_GLASS_Clear();
-				//BSP_LCD_GLASS_DisplayString((uint8_t *)"HOE");
 				}
 				BSP_LCD_GLASS_Clear();
-				RTC_Clock_Enable();
 			}					
 //==============================================================		
-			if (uppressed==1){
-				uppressed=0;
-			}
+			//if (uppressed==1){
+				//uppressed=0;
+			//}
 
 //==============================================================					
 			if (selpressed==1)  {
@@ -299,8 +295,9 @@ int main(void)
 //==============================================================						
 			if (push14_pressed==1) {
 				if (Mode_SetTime == 0) {
+					RTC_Clock_Disable();
 					BSP_LCD_GLASS_Clear();
-					//RTC_Clock_Disable();
+					BSP_LCD_GLASS_DisplayString((uint8_t*)"SET");
 					Mode_SetTime = 1;
 				}
 				else {
@@ -314,12 +311,10 @@ int main(void)
 			if (Mode_SetTime == 1) {
 				switch (state) {
 					case 0:
-						//BSP_LCD_GLASS_Clear();
-						//BSP_LCD_GLASS_DisplayString((uint8_t*)"SEC");
+							//BSP_LCD_GLASS_Clear();
+							//BSP_LCD_GLASS_DisplayString((uint8_t*)"SEC");
 						if (uppressed == 1) {
-							HAL_RTC_GetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
-							HAL_RTC_GetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BIN);
-							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds +1)%60;
+							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds++)%60;
 							//RTC_TimeStructure.Seconds++;
 							BSP_LCD_GLASS_Clear();
 							sprintf(output,"%d",RTC_TimeStructure.Seconds);
@@ -659,6 +654,7 @@ void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)
 void RTC_Clock_Enable(void)
 {
 RTC_AlarmA_IT_Enable(&RTCHandle);
+BSP_LED_Off(LED5);
 }
 
 void RTC_Clock_Disable(void)
