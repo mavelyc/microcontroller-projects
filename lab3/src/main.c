@@ -105,6 +105,7 @@ void RTC_DateShow(void);
 void PushButton_Config(void);
 char weekday[20];
 void Get_Weekday(uint8_t WDAY);
+int help;
 int state, trav;
 
 
@@ -293,6 +294,7 @@ int main(void)
 					switch (trav){
 						case 0:
 							if (uppressed==1){
+								
 							}
 					}
 					
