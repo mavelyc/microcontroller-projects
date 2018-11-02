@@ -50,6 +50,8 @@ NOTE: students can also configure the TimeStamp pin
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "string.h"
+#include "stdio.h"
 
 /** @addtogroup STM32L4xx_HAL_Examples
   * @{
@@ -85,7 +87,7 @@ uint8_t wd, dd, mo, yy, ss, mm, hh; // for weekday, day, month, year, second, mi
 
 __IO uint32_t SEL_Pressed_StartTick;   //sysTick when the User button is pressed
 
-__IO uint8_t leftpressed, rightpressed, uppressed, downpressed, selpressed;  // button pressed 
+__IO uint8_t leftpressed, rightpressed, uppressed, downpressed, selpressed, push14_pressed;  // button pressed 
 __IO uint8_t  sel_held;   // if the selection button is held for a while (>800ms)
 
 /* Private function prototypes -----------------------------------------------*/
@@ -95,12 +97,15 @@ static void Error_Handler(void);
 void RTC_Config(void);
 void RTC_AlarmAConfig(void);
 
-// Custom private function prototypes
+// Custom prototypes
 void RTC_Clock_Enable(void);
 void RTC_Clock_Disable(void);
 void RTC_TimeShow(void);
 void RTC_DateShow(void);
 void PushButton_Config(void);
+char weekday[20];
+void Get_Weekday(uint8_t WDAY);
+int state;
 
 
 /* Private functions ---------------------------------------------------------*/
@@ -129,6 +134,9 @@ int main(void)
 	downpressed=0;
 	selpressed=0;
 	sel_held=0;
+	push14_pressed=0;
+	state=0;
+
 	
 
 	HAL_Init();
@@ -230,13 +238,20 @@ int main(void)
 					SEL_Pressed_StartTick=HAL_GetTick(); 
 					while(BSP_JOY_GetState() == JOY_SEL) {  //while the selection button is pressed)	
 						if ((HAL_GetTick()-SEL_Pressed_StartTick)>800) {
+								RTC_Clock_Disable();
 								BSP_LED_On(LED4);
 								BSP_LED_Off(LED5);
 								RTC_DateShow();
+								
+								//HAL_Delay(1000);
 								BSP_LED_Off(LED4);
+								break;
 					}
+				//BSP_LCD_GLASS_Clear();
+				//BSP_LCD_GLASS_DisplayString((uint8_t *)"HOE");
 				}
-				
+				BSP_LCD_GLASS_Clear();
+				RTC_Clock_Enable();
 			}					
 //==============================================================			
 
@@ -264,10 +279,21 @@ int main(void)
 //==============================================================			
 
 //==============================================================						
-			//switch (myState) { 
+			if (push14_pressed==1){
+					push14_pressed=0;
+					state=1;
+			
+			}
+			
+			
+			switch (state) {
+				case 1:
+					RTC_Clock_Disable();
+					
 				
 				
-			//} //end of switch					
+				
+			} //end of switch					
 		
 
 
@@ -416,10 +442,10 @@ void RTC_Config(void) {
 	//****3.***** init the time and 
 				
 					
-				RTC_DateStructure.Year = 0;
+				RTC_DateStructure.Year = 0x12; // 2018 in Hexadecmial
 				RTC_DateStructure.Month = RTC_MONTH_OCTOBER;
-				RTC_DateStructure.Date = 1;
-				RTC_DateStructure.WeekDay = RTC_WEEKDAY_WEDNESDAY;
+				RTC_DateStructure.Date = 0x14;
+				RTC_DateStructure.WeekDay = 0x03;
 				
 				if(HAL_RTC_SetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BIN) != HAL_OK)   //BIN format is better 
 															//before, must set in BCD format and read in BIN format!!
@@ -451,7 +477,7 @@ void RTC_Config(void) {
 			__HAL_RTC_TAMPER2_DISABLE(&RTCHandle);	
 				//Optionally, a tamper event can cause a timestamp to be recorded. ---P802 of RM0090
 				//Timestamp on tamper event
-				//With TAMPTS set to ‘1 , any tamper event causes a timestamp to occur. In this case, either
+				//With TAMPTS set to â€˜1 , any tamper event causes a timestamp to occur. In this case, either
 				//the TSF bit or the TSOVF bit are set in RTC_ISR, in the same manner as if a normal
 				//timestamp event occurs. The affected tamper flag register (TAMP1F, TAMP2F) is set at the
 				//same time that TSF or TSOVF is set. ---P802, about Tamper detection
@@ -505,7 +531,7 @@ HAL_StatusTypeDef  RTC_AlarmA_IT_Disable(RTC_HandleTypeDef *hrtc)
   
   // __HAL_RTC_ALARMA_DISABLE(hrtc);
     
-   // In case of interrupt mode is used, the interrupt source must disabled 
+   // In case of interrupt mode is use d, the interrupt source must disabled 
    __HAL_RTC_ALARM_DISABLE_IT(hrtc, RTC_IT_ALRA);
 
 
@@ -557,23 +583,24 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 						selpressed=1;	
 						break;	
 			case GPIO_PIN_1:     //left button						
-							leftpressed=1;
-							break;
+						leftpressed=1;
+						break;
 			case GPIO_PIN_2:    //right button						  to play again.
-							rightpressed=1;			
-							break;
-			case GPIO_PIN_3:    //up button							
-							BSP_LCD_GLASS_Clear();
-							BSP_LCD_GLASS_DisplayString((uint8_t*)"up");
-							break;
+						rightpressed=1;			
+						break;
+			case GPIO_PIN_3:
+						uppressed=1;						
+						BSP_LCD_GLASS_Clear();
+						BSP_LCD_GLASS_DisplayString((uint8_t*)"up");
+						break;
 			
-			case GPIO_PIN_5:    //down button						
-							BSP_LCD_GLASS_Clear();
-							BSP_LCD_GLASS_DisplayString((uint8_t*)"down");
-							break;
+			case GPIO_PIN_5:    //down button		
+						downpressed=1;
+						BSP_LCD_GLASS_Clear();
+						BSP_LCD_GLASS_DisplayString((uint8_t*)"down");
+						break;
 			case GPIO_PIN_14:    //down button						
-							//BSP_LCD_GLASS_Clear();
-							//BSP_LCD_GLASS_DisplayString((uint8_t*)"PE14");
+						push14_pressed=1;
 							RTC_DateShow();
 							break;			
 			default://
@@ -605,25 +632,53 @@ RTC_AlarmA_IT_Disable(&RTCHandle);
 
 void RTC_TimeShow(void)
 {
-	HAL_RTC_GetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BCD);
-	HAL_RTC_GetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BCD);
+	HAL_RTC_GetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
+	HAL_RTC_GetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BIN);
 	char TimeStamp[20];
-	sprintf(TimeStamp,"%d:%d:%d",RTC_TimeStructure.Hours,RTC_TimeStructure.Minutes,RTC_TimeStructure.Seconds);
+	sprintf(TimeStamp,"%02d%02d%02d",RTC_TimeStructure.Hours,RTC_TimeStructure.Minutes,RTC_TimeStructure.Seconds);
 	BSP_LCD_GLASS_Clear();
 	BSP_LCD_GLASS_DisplayString((uint8_t*)TimeStamp);
 }
 
 void RTC_DateShow(void)
 {
-	RTC_Clock_Disable();
-	HAL_RTC_GetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BCD);
-	HAL_RTC_GetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BCD);
-	char DateStamp[20];
-	sprintf(DateStamp,"   Day-%d, Date-%d, Month-%d, Year-%d",RTC_DateStructure.Date,RTC_DateStructure.Date,RTC_DateStructure.Month,RTC_DateStructure.Year);
+
+	HAL_RTC_GetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
+	HAL_RTC_GetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BIN);
+	char DateStamp[50];
+	Get_Weekday(RTC_DateStructure.WeekDay);
+	sprintf(DateStamp,"      Weekday-%s, Date-%d, Month-%d, Year-%d",weekday,RTC_DateStructure.Date,RTC_DateStructure.Month,RTC_DateStructure.Year);
 	BSP_LCD_GLASS_Clear();
 	//BSP_LCD_GLASS_DisplayString((uint8_t*)DateStamp);
-	BSP_LCD_GLASS_ScrollSentence((uint8_t*)DateStamp,1,400);
-	RTC_Clock_Enable();
+	//BSP_LCD_GLASS_DisplayString((uint8_t*)DateStamp);
+	BSP_LCD_GLASS_ScrollSentence((uint8_t*)DateStamp,1,300);
+
+}
+
+void Get_Weekday(uint8_t WDAY) {
+	switch (WDAY) {
+		case 0x01:
+				strcpy(weekday,"Monday");
+				break;
+		case 0x02:
+				strcpy(weekday,"Tuesday");
+				break;
+		case 0x03:
+				strcpy(weekday,"Wednesday");
+				break;
+		case 0x04:
+				strcpy(weekday,"Thursday");
+				break;
+		case 0x05:
+				strcpy(weekday,"Friday");
+				break;
+		case 0x06:
+				strcpy(weekday,"Saturday");
+				break;
+		case 0x07:
+				strcpy(weekday,"Sunday");
+				break;
+	}
 }
 
 void PushButton_Config(void)
