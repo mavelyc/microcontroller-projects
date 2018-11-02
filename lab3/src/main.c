@@ -279,26 +279,33 @@ int main(void)
 
 //==============================================================		 
 			if (leftpressed==1) {
-					if (Mode_SetTime == 1) state++;
-					leftpressed=0;
+				if (Mode_SetTime == 1) {
+					state++;
+					//if (state == 7) state = 0; BORDER CASE
+				}
+				leftpressed=0;
 			}			
 //==============================================================			
 
 //==============================================================							
 			if (rightpressed==1) {
-
-			
-					rightpressed=0;
+				if (Mode_SetTime == 1) {
+					state--;
+					//if (state == 0) state = 7; BORDER CASE
+				}
+				rightpressed=0;
 			}
 //==============================================================			
 
 //==============================================================						
 			if (push14_pressed==1) {
 				if (Mode_SetTime == 0) {
+					BSP_LCD_GLASS_Clear();
 					RTC_Clock_Disable();
 					Mode_SetTime = 1;
 				}
 				else {
+					BSP_LCD_GLASS_Clear();
 					RTC_Clock_Enable();
 					Mode_SetTime = 0;
 				}
@@ -312,7 +319,7 @@ int main(void)
 						BSP_LCD_GLASS_DisplayString((uint8_t*)"CASE 0");
 					case 1: 
 						BSP_LCD_GLASS_Clear();
-						BSP_LCD_GLASS_DisplayString((uint8_t*)"CASE 1");
+						//BSP_LCD_GLASS_DisplayString((uint8_t*)"CASE 1");
 					
 				} // end of switch
 				
