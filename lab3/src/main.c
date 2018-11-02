@@ -290,10 +290,11 @@ int main(void)
 					DisplayState(state);
 					leftpressed=0;
 				}
-				
+				else{
 				BSP_LCD_GLASS_Clear();
 				ReadEE();
 				leftpressed=0;
+				}
 			}			
 //==============================================================			
 
