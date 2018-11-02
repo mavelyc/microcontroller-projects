@@ -845,7 +845,6 @@ void RTC_DateShow(void)
 	HAL_RTC_GetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BIN);
 	char DateStamp[50];
 	Get_Weekday(RTC_DateStructure.WeekDay);
-	Get_Month(RTC_DateStructure.Month);
 	sprintf(DateStamp,"      WDAY-%s, DATE-%d, MONTH-%d, YEAR-20%d",weekday,RTC_DateStructure.Date,RTC_DateStructure.Month,RTC_DateStructure.Year);
 	BSP_LCD_GLASS_Clear();
 	BSP_LCD_GLASS_ScrollSentence((uint8_t*)DateStamp,1,300);
