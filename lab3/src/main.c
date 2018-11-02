@@ -113,6 +113,7 @@ void DisplayState(int state);
 
 
 //cmave inits
+int push13_pressed;
 
 
 
@@ -146,7 +147,7 @@ int main(void)
 	Mode_SetTime = 0;
 	state=0;
 
-
+	push13_pressed =0;
 	
 
 	HAL_Init();
@@ -312,6 +313,18 @@ int main(void)
 				}
 				push14_pressed = 0;
 			}
+			
+			
+			
+			if (push13_pressed==1){
+				
+				
+				
+			}
+			
+			
+			
+			
 			
 			if (Mode_SetTime == 1) {
 				switch (state) {
@@ -636,7 +649,10 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			case GPIO_PIN_14:    //down button						
 						RTC_Clock_Disable();
 						push14_pressed=1;
-						break;			
+						break;	
+			case GPIO_PIN_13:
+						RTC_Clock_Disable();
+						push13_pressed=1;
 			default://
 						//default
 						break;
