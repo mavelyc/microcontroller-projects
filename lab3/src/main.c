@@ -179,7 +179,6 @@ int main(void)
 
 
 //the following variables are for testging I2C_EEPROM
-	uint8_t data1 =0x67,  data2=0x68;
 	uint8_t readData=0x00;
 	uint16_t EE_status;
 
@@ -242,7 +241,7 @@ int main(void)
 	}	
 
 	HAL_Delay(1000);
-	BSP_LCD_GLASS_DisplayString((uint8_t *)"shaddup");
+	BSP_LCD_GLASS_DisplayString((uint8_t *)"test");
 
 */
 
@@ -289,8 +288,7 @@ int main(void)
 					else state++;
 					DisplayState(state);
 					leftpressed=0;
-				}
-				else{
+				}else{
 				BSP_LCD_GLASS_Clear();
 				ReadEE();
 				leftpressed=0;
@@ -322,6 +320,15 @@ int main(void)
 					RTC_Clock_Enable();
 					Mode_SetTime = 0;
 					state = 0;
+					RTC_TimeStructure.Seconds = ss;
+					RTC_TimeStructure.Minutes = mm;
+					RTC_TimeStructure.Hours = hh;
+					RTC_DateStructure.WeekDay = wd;
+					RTC_DateStructure.Date = dd;
+					RTC_DateStructure.Month = mo;
+					RTC_DateStructure.Year = yy;
+					HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
+					HAL_RTC_SetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BIN);
 				}
 				push14_pressed = 0;
 			}
@@ -331,22 +338,27 @@ int main(void)
 			if (push13_pressed==1){
 				HAL_RTC_GetTime(&RTCHandle, &RTC_TimeStructure, RTC_FORMAT_BIN);
 				HAL_RTC_GetDate(&RTCHandle, &RTC_DateStructure, RTC_FORMAT_BIN);
+				RTC_Clock_Disable();
 				BSP_LCD_GLASS_Clear();
 				BSP_LCD_GLASS_DisplayString((uint8_t*)"SAVED");
 				HAL_Delay(1500);
-				EE_status=I2C_ByteWrite(&pI2c_Handle,EEPROM_ADDRESS, memLocation, RTC_TimeStructure.Seconds);
+				ss = RTC_TimeStructure.Seconds;
+				mm = RTC_TimeStructure.Minutes;
+				hh = RTC_TimeStructure.Hours;
+				EE_status=I2C_ByteWrite(&pI2c_Handle,EEPROM_ADDRESS, memLocation, ss);
 				if(EE_status == HAL_OK)
-  {
-    BSP_LED_On(LED4);  
-	}
+				{
+				BSP_LED_Toggle(LED4);  
+				}
 				HAL_Delay(10);
 				memLocation++;
-				EE_status=I2C_ByteWrite(&pI2c_Handle,EEPROM_ADDRESS, memLocation, RTC_TimeStructure.Minutes);
+				EE_status=I2C_ByteWrite(&pI2c_Handle,EEPROM_ADDRESS, memLocation, mm);
 				HAL_Delay(10);
 				memLocation++;
-				EE_status=I2C_ByteWrite(&pI2c_Handle,EEPROM_ADDRESS, memLocation, RTC_TimeStructure.Hours);
+				EE_status=I2C_ByteWrite(&pI2c_Handle,EEPROM_ADDRESS, memLocation, hh);
 				HAL_Delay(10);
 				memLocation++;	
+				RTC_Clock_Enable();
 				push13_pressed=0;
 			}
 			
@@ -363,144 +375,136 @@ int main(void)
 					
 					case 1: 
 						if (uppressed == 1) {
-							RTC_TimeStructure.Seconds++;
-							if (RTC_TimeStructure.Seconds == 60) RTC_TimeStructure.Seconds = 0;
-							sprintf(output,"%d",RTC_TimeStructure.Seconds);
+							ss++;
+							if (ss >= 60) ss = 0;
+							sprintf(output,"%d",ss);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
-							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
 							uppressed = 0;
 						}
 						if (downpressed == 1) {
-							RTC_TimeStructure.Seconds--;
-							if (RTC_TimeStructure.Seconds == 255) RTC_TimeStructure.Seconds = 59;
-							sprintf(output,"%d",RTC_TimeStructure.Seconds);
+							ss--;
+							if (ss == 255) ss = 59;
+							sprintf(output,"%d",ss);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
-							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
 							downpressed = 0;
 						}
+						break;
 						
 						case 2: 
 						if (uppressed == 1) {
-							RTC_TimeStructure.Minutes++;
-							if (RTC_TimeStructure.Minutes == 60) RTC_TimeStructure.Minutes = 0;
-							sprintf(output,"%d",RTC_TimeStructure.Minutes);
+							mm++;
+							if (mm >= 60) mm = 0;
+							sprintf(output,"%d",mm);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
-							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
 							uppressed = 0;
 						}
 						if (downpressed == 1) {
-							RTC_TimeStructure.Minutes--;
-							if (RTC_TimeStructure.Minutes == 255) RTC_TimeStructure.Minutes = 59;
-							sprintf(output,"%d",RTC_TimeStructure.Minutes);
+							mm--;
+							if (mm == 255) mm = 59;
+							sprintf(output,"%d",mm);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
-							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
 							downpressed = 0;
 						}
+						break;
 						
 						case 3: 
 						if (uppressed == 1) {
-							RTC_TimeStructure.Hours++;
-							if (RTC_TimeStructure.Hours == 24) RTC_TimeStructure.Hours = 0;
-							sprintf(output,"%d",RTC_TimeStructure.Hours);
+							hh++;
+							if (hh == 24) hh = 0;
+							sprintf(output,"%d",hh);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
-							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
 							uppressed =0;
 						}
 						if (downpressed == 1) {
-							RTC_TimeStructure.Hours--;
-							if (RTC_TimeStructure.Hours == 255) RTC_TimeStructure.Hours = 23;
-							sprintf(output,"%d",RTC_TimeStructure.Hours);
+							hh--;
+							if (hh == 255) hh = 23;
+							sprintf(output,"%d",hh);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
-							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
 							downpressed =0;
 						}
+						break;
 						
 						case 4: 
 						if (uppressed == 1) {
-							RTC_DateStructure.WeekDay++;
-							if (RTC_DateStructure.WeekDay == 8) RTC_DateStructure.WeekDay = 1;
-							sprintf(output,"%d",RTC_DateStructure.WeekDay);
+							wd++;
+							if (wd == 8) wd = 1;
+							sprintf(output,"%d",wd);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
-							HAL_RTC_SetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BIN);
 							uppressed =0;
 						}
 						if (downpressed == 1) {	
-							RTC_DateStructure.WeekDay--;
-							if (RTC_DateStructure.WeekDay == 0) RTC_DateStructure.WeekDay = 7;
-							sprintf(output,"%d",RTC_DateStructure.WeekDay);
+							wd--;
+							if (wd == 0) wd = 7;
+							sprintf(output,"%d",wd);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
-							HAL_RTC_SetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BIN);
 							downpressed = 0;
 						}
+						break;
 						
 						case 5: 
 						if (uppressed == 1) {
-							RTC_DateStructure.Date++;
-							if (RTC_DateStructure.Date == 32) RTC_DateStructure.Date = 1;
-							sprintf(output,"%d",RTC_DateStructure.Date);
+							dd++;
+							if (dd == 32) dd = 1;
+							sprintf(output,"%d",dd);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
-							HAL_RTC_SetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BIN);
 							uppressed = 0;
 						}
 						if (downpressed == 1) {
-							RTC_DateStructure.Date--;
-							if (RTC_DateStructure.Date == 0) RTC_DateStructure.Date = 31;
+							dd--;
+							if (dd == 0) dd = 31;
 							sprintf(output,"%d",RTC_DateStructure.Date);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
-							HAL_RTC_SetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BIN);
 							downpressed = 0;
 						}
 						break;
 
 						case 6: 
 						if (uppressed == 1) {
-							RTC_DateStructure.Month++;
-							if (RTC_DateStructure.Month == 13) RTC_DateStructure.Month = 1;
-							sprintf(output,"%d",RTC_DateStructure.Month);
+							mo++;
+							if (mo == 13) mo = 1;
+							sprintf(output,"%d",mo);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
-							HAL_RTC_SetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BIN);
 							uppressed = 0;
 						}
 						if (downpressed == 1) {
-							RTC_DateStructure.Month--;
-							if (RTC_DateStructure.Month == 0) RTC_DateStructure.Month = 12;
-							sprintf(output,"%d",RTC_DateStructure.Month);
+							mo--;
+							if (mo == 0) mo = 12;
+							sprintf(output,"%d",mo);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
-							HAL_RTC_SetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BIN);
 							downpressed = 0;
 						}
+						break;
 						
 						case 7: 
 						if (uppressed == 1) {
-							RTC_DateStructure.Year++;
-							if (RTC_DateStructure.Year == 100) RTC_DateStructure.Year = 0;
-							sprintf(output,"%d",RTC_DateStructure.Year);
+							yy++;
+							if (yy == 100) yy = 0;
+							sprintf(output,"%d",yy);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
-							HAL_RTC_SetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BIN);
 							uppressed =0;
 						}
 						if (downpressed == 1) {
-							RTC_DateStructure.Year--;
-							if (RTC_DateStructure.Year == 255) RTC_DateStructure.Year = 99;
-							sprintf(output,"%d",RTC_DateStructure.Year);
+							yy--;
+							if (yy == 255) yy = 99;
+							sprintf(output,"%d",yy);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
-							HAL_RTC_SetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BIN);
 							downpressed =0;
 						}
+						break;
 				} // end of switch
 				
 				
@@ -538,7 +542,7 @@ void ReadEE (void){
 	HAL_Delay(10);
 	ss=I2C_ByteRead(&pI2c_Handle,EEPROM_ADDRESS, memLocation-6);
 	HAL_Delay(10);
-	sprintf(output,"    TIME1=%02d%02d%02d",hh,mm,ss);
+	sprintf(output,"      TIME1=%02d%02d%02d",hh,mm,ss);
 	BSP_LCD_GLASS_Clear();
 	BSP_LCD_GLASS_ScrollSentence((uint8_t*)output,1,300);
 	BSP_LCD_GLASS_Clear();
@@ -820,7 +824,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 						break;	
 			case GPIO_PIN_1:     //left button						
 						leftpressed=1;
-						count= (count+1)%3;
+						count= (count+1)%2;
 						break;
 			case GPIO_PIN_2:    //right button						  to play again.
 						rightpressed=1;			
