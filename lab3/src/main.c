@@ -108,6 +108,7 @@ char weekday[20], month[20], output[20];
 void Get_Weekday(uint8_t WDAY);
 void Get_Month(uint8_t MONTH);
 int state, Mode_SetTime;
+void DisplayState(int state);
 
 
 //cmave inits
@@ -276,7 +277,8 @@ int main(void)
 			if (leftpressed==1) {
 				if (Mode_SetTime == 1) {
 					state++;
-					//if (state == 7) state = 0; BORDER CASE
+					if (state == 7) state = 1; // BORDER CASE
+					DisplayState(state);
 				}
 				leftpressed=0;
 			}			
@@ -286,7 +288,8 @@ int main(void)
 			if (rightpressed==1) {
 				if (Mode_SetTime == 1) {
 					state--;
-					//if (state == 0) state = 7; BORDER CASE
+					if (state == 1) state = 7; // BORDER CASE
+					DisplayState(state);
 				}
 				rightpressed=0;
 			}
@@ -311,21 +314,18 @@ int main(void)
 			if (Mode_SetTime == 1) {
 				switch (state) {
 					case 0:
-							//BSP_LCD_GLASS_Clear();
-							//BSP_LCD_GLASS_DisplayString((uint8_t*)"SEC");
+							BSP_LCD_GLASS_Clear();
+							BSP_LCD_GLASS_DisplayString((uint8_t*)"SET");
+						break;
+					case 1: 
 						if (uppressed == 1) {
-							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds++)%60;
-							//RTC_TimeStructure.Seconds++;
+							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds++)%59;
 							BSP_LCD_GLASS_Clear();
 							sprintf(output,"%d",RTC_TimeStructure.Seconds);
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
 							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
 							uppressed =0;
 						}
-						break;
-					case 1: 
-						BSP_LCD_GLASS_Clear();
-						BSP_LCD_GLASS_DisplayString((uint8_t*)"SECONDS");
 						break;
 				} // end of switch
 				
@@ -753,7 +753,34 @@ void Get_Month(uint8_t MONTH) {
 				break;
 	}
 }
-	
+
+void DisplayState(int state) {
+	BSP_LCD_GLASS_Clear();
+	switch (state) {
+		case 1: 
+			BSP_LCD_GLASS_DisplayString((uint8_t*)"SEC");
+			break;
+		case 2: 
+			BSP_LCD_GLASS_DisplayString((uint8_t*)"MIN");
+			break;
+		case 3: 
+			BSP_LCD_GLASS_DisplayString((uint8_t*)"HOUR");
+			break;
+		case 4: 
+			BSP_LCD_GLASS_DisplayString((uint8_t*)"WDAY");
+			break;
+		case 5: 
+			BSP_LCD_GLASS_DisplayString((uint8_t*)"DATE");
+			break;
+		case 6: 
+			BSP_LCD_GLASS_DisplayString((uint8_t*)"MONTH");
+			break;
+		case 7: 
+			BSP_LCD_GLASS_DisplayString((uint8_t*)"YEAR");
+			break;
+	}
+}
+
 void PushButton_Config(void)
 {
 	__HAL_RCC_GPIOE_CLK_ENABLE();
