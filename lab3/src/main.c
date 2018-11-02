@@ -673,10 +673,10 @@ void Get_Weekday(uint8_t WDAY) {
 				strcpy(weekday,"FRI");
 				break;
 		case 0x06:
-				strcpy(weekday,"SAT");
+				strcpy(weekday,"SATURDAY");
 				break;
 		case 0x07:
-				strcpy(weekday,"SUN");
+				strcpy(weekday,"SUNDAY");
 				break;
 	}
 }
