@@ -83,6 +83,7 @@ char timestring[10]={0};  //
 char datestring[6]={0};
 
 
+
 uint8_t wd, dd, mo, yy, ss, mm, hh; // for weekday, day, month, year, second, minute, hour
 
 __IO uint32_t SEL_Pressed_StartTick;   //sysTick when the User button is pressed
@@ -104,6 +105,7 @@ void RTC_TimeShow(void);
 void RTC_DateShow(void);
 void PushButton_Config(void);
 char weekday[20];
+char month[20];
 void Get_Weekday(uint8_t WDAY);
 int state, trav;
 
