@@ -107,6 +107,7 @@ void PushButton_Config(void);
 char weekday[20];
 char month[20];
 void Get_Weekday(uint8_t WDAY);
+void Get_Month(uint8_t MONTH);
 int state, trav;
 
 
@@ -768,10 +769,9 @@ void RTC_DateShow(void)
 	HAL_RTC_GetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BIN);
 	char DateStamp[50];
 	Get_Weekday(RTC_DateStructure.WeekDay);
-	sprintf(DateStamp,"      Weekday-%s, Date-%d, Month-%d, Year-%d",weekday,RTC_DateStructure.Date,RTC_DateStructure.Month,RTC_DateStructure.Year);
+	Get_Month(RTC_DateStructure.Month);
+	sprintf(DateStamp,"      Weekday-%s, Date-%d, Month-%s, Year-%d",weekday,RTC_DateStructure.Date,month,RTC_DateStructure.Year);
 	BSP_LCD_GLASS_Clear();
-	//BSP_LCD_GLASS_DisplayString((uint8_t*)DateStamp);
-	//BSP_LCD_GLASS_DisplayString((uint8_t*)DateStamp);
 	BSP_LCD_GLASS_ScrollSentence((uint8_t*)DateStamp,1,300);
 
 }
@@ -802,6 +802,47 @@ void Get_Weekday(uint8_t WDAY) {
 	}
 }
 
+void Get_Month(uint8_t MONTH) {
+		switch (MONTH) {
+		case 0x01:
+				strcpy(month,"JAN");
+				break;
+		case 0x02:
+				strcpy(month,"FEB");
+				break;
+		case 0x03:
+				strcpy(month,"MARCH");
+				break;
+		case 0x04:
+				strcpy(month,"APRIL");
+				break;
+		case 0x05:
+				strcpy(month,"MAY");
+				break;
+		case 0x06:
+				strcpy(month,"JUNE");
+				break;
+		case 0x07:
+				strcpy(month,"JULY");
+				break;
+		case 0x08:
+				strcpy(month,"AUG");
+				break;
+		case 0x09:
+				strcpy(month,"SEPT");
+				break;
+		case 0x10:
+				strcpy(month,"OCT");
+				break;
+		case 0x11:
+				strcpy(month,"NOV");
+				break;
+		case 0x12:
+				strcpy(month,"DEC");
+				break;
+	}
+}
+	
 void PushButton_Config(void)
 {
 	__HAL_RCC_GPIOE_CLK_ENABLE();
