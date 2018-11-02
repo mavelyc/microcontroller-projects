@@ -49,7 +49,7 @@ NOTE: students can also configure the TimeStamp pin
 
 
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
+#include <main.h>
 #include "string.h"
 #include "stdio.h"
 
@@ -105,7 +105,7 @@ void RTC_DateShow(void);
 void PushButton_Config(void);
 char weekday[20];
 void Get_Weekday(uint8_t WDAY);
-int state;
+int state, trav;
 
 
 /* Private functions ---------------------------------------------------------*/
@@ -136,6 +136,7 @@ int main(void)
 	sel_held=0;
 	push14_pressed=0;
 	state=0;
+	trav=0;
 
 	
 
@@ -289,6 +290,11 @@ int main(void)
 			switch (state) {
 				case 1:
 					RTC_Clock_Disable();
+					switch (trav){
+						case 0:
+							if (uppressed==1){
+							}
+					}
 					
 				
 				
@@ -658,7 +664,7 @@ void RTC_DateShow(void)
 void Get_Weekday(uint8_t WDAY) {
 	switch (WDAY) {
 		case 0x01:
-				strcpy(weekday,"MON");
+				strcpy(weekday,"MONDAY");
 				break;
 		case 0x02:
 				strcpy(weekday,"TUES");
@@ -673,10 +679,10 @@ void Get_Weekday(uint8_t WDAY) {
 				strcpy(weekday,"FRI");
 				break;
 		case 0x06:
-				strcpy(weekday,"SATURDAY");
+				strcpy(weekday,"SAT");
 				break;
 		case 0x07:
-				strcpy(weekday,"SUNDAY");
+				strcpy(weekday,"SUN");
 				break;
 	}
 }
