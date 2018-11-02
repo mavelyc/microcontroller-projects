@@ -108,6 +108,10 @@ void Get_Weekday(uint8_t WDAY);
 int state, trav;
 
 
+//cmave inits
+int yo;
+
+
 /* Private functions ---------------------------------------------------------*/
 
 /**
