@@ -111,7 +111,7 @@ int state, trav;
 
 
 //cmave inits
-int yo;
+int move;
 
 
 /* Private functions ---------------------------------------------------------*/
@@ -143,6 +143,7 @@ int main(void)
 	push14_pressed=0;
 	state=0;
 	trav=0;
+	move=0;
 
 	
 
@@ -260,19 +261,24 @@ int main(void)
 				BSP_LCD_GLASS_Clear();
 				RTC_Clock_Enable();
 			}					
-//==============================================================			
+//==============================================================		
+			if (uppressed==1){
+				uppressed=0;
+			}
 
 //==============================================================					
 			if (selpressed==1)  {
 	
 					selpressed=0;
 			} 
-//==============================================================			
+//==============================================================		
+			if (downpressed==1){
+				downpressed = 0;
+			}
 
 //==============================================================		 
 			if (leftpressed==1) {
-
-							
+					trav=1;
 					leftpressed=0;
 			}			
 //==============================================================			
@@ -288,7 +294,11 @@ int main(void)
 //==============================================================						
 			if (push14_pressed==1){
 					push14_pressed=0;
-					state=1;
+					if (state==0 || state==2){
+						state = 1;
+					} else {
+						state=2;
+					}
 			
 			}
 			
@@ -296,12 +306,111 @@ int main(void)
 			switch (state) {
 				case 1:
 					RTC_Clock_Disable();
-					switch (trav){
+					switch(trav){
 						case 0:
+							//print SET time
+							trav++;
+						case 1:
+							//print Seconds
 							if (uppressed==1){
-								
+								RTC_TimeStructure.Seconds++;
+							}
+							if (downpressed==1){
+								RTC_TimeStructure.Seconds--;
+							}
+							if (leftpressed==1){
+								trav++;
+								if (trav > 7){
+									trav=trav%7 + 1;
+								}
+							}
+						case 2:
+							//print Minutes
+							if (uppressed==1){
+								RTC_TimeStructure.Minutes++;
+							}
+							if (downpressed==1){
+								RTC_TimeStructure.Minutes--;
+							}
+							if (leftpressed==1){
+								trav++;
+								if (trav > 7){
+									trav=trav%7 + 1;
+								}
+							}
+						case 3:
+							//print Hours
+							if (uppressed==1){
+								RTC_TimeStructure.Hours++;
+							}
+							if (downpressed==1){
+								RTC_TimeStructure.Hours--;
+							}
+							if (leftpressed==1){
+								trav++;
+								if (trav > 7){
+									trav=trav%7 + 1;
+								}
+							}
+						case 4:
+							//print Weekday
+							if (uppressed==1){
+								RTC_DateStructure.WeekDay++;
+							}
+							if (downpressed==1){
+								RTC_DateStructure.WeekDay--;
+							}
+							if (leftpressed==1){
+								trav++;
+								if (trav > 7){
+									trav=trav%7 + 1;
+								}
+							}
+						case 5:
+							//print Date
+							if (uppressed==1){
+								RTC_DateStructure.Date++;
+							}
+							if (downpressed==1){
+								RTC_DateStructure.Date--;
+							}
+							if (leftpressed==1){
+								trav++;
+								if (trav > 7){
+									trav=trav%7 + 1;
+								}
+							}
+						case 6:
+							//print Month
+							if (uppressed==1){
+								RTC_DateStructure.Month++;
+							}
+							if (downpressed==1){
+								RTC_DateStructure.Month--;
+							}
+							if (leftpressed==1){
+								trav++;
+								if (trav > 7){
+									trav=trav%7 + 1;
+								}
+							}
+						case 7:
+							//print Year
+							if (uppressed==1){
+								RTC_DateStructure.Year++;
+							}
+							if (downpressed==1){
+								RTC_DateStructure.Year--;
+							}
+							if (leftpressed==1){
+								trav++;
+								if (trav > 7){
+									trav=trav%7 + 1;
+								}
 							}
 					}
+				case 2:
+					RTC_Clock_Enable();
 					
 				
 				
@@ -614,7 +723,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 						break;
 			case GPIO_PIN_14:    //down button						
 						push14_pressed=1;
-							RTC_DateShow();
 							break;			
 			default://
 						//default
