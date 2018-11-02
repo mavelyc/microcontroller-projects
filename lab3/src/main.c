@@ -670,7 +670,7 @@ void Get_Weekday(uint8_t WDAY) {
 				strcpy(weekday,"TUES");
 				break;
 		case 0x03:
-				strcpy(weekday,"WED");
+				strcpy(weekday,"WEDNESDAY");
 				break;
 		case 0x04:
 				strcpy(weekday,"THURS");
