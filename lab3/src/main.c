@@ -108,7 +108,7 @@ char weekday[20];
 char month[20];
 void Get_Weekday(uint8_t WDAY);
 void Get_Month(uint8_t MONTH);
-int state, trav;
+int state, Mode_SetTime;
 
 
 //cmave inits
@@ -142,9 +142,9 @@ int main(void)
 	selpressed=0;
 	sel_held=0;
 	push14_pressed=0;
+	Mode_SetTime = 0;
 	state=0;
-	trav=0;
-	move=0;
+
 
 	
 
@@ -279,7 +279,7 @@ int main(void)
 
 //==============================================================		 
 			if (leftpressed==1) {
-					trav=1;
+					if (Mode_SetTime == 1) state++;
 					leftpressed=0;
 			}			
 //==============================================================			
@@ -293,130 +293,31 @@ int main(void)
 //==============================================================			
 
 //==============================================================						
-			if (push14_pressed==1){
-					push14_pressed=0;
-					if (state==0 || state==2){
-						state = 1;
-					} else {
-						state=2;
-					}
-			
+			if (push14_pressed==1) {
+				if (Mode_SetTime == 0) {
+					RTC_Clock_Disable();
+					Mode_SetTime = 1;
+				}
+				else {
+					RTC_Clock_Enable();
+					Mode_SetTime = 0;
+				}
+				push14_pressed = 0;
 			}
 			
-			
-			switch (state) {
-				case 1:
-					RTC_Clock_Disable();
-					switch(trav){
-						case 0:
-							//print SET time
-							trav++;
-						case 1:
-							//print Seconds
-							if (uppressed==1){
-								RTC_TimeStructure.Seconds++;
-							}
-							if (downpressed==1){
-								RTC_TimeStructure.Seconds--;
-							}
-							if (leftpressed==1){
-								trav++;
-								if (trav > 7){
-									trav=trav%7 + 1;
-								}
-							}
-						case 2:
-							//print Minutes
-							if (uppressed==1){
-								RTC_TimeStructure.Minutes++;
-							}
-							if (downpressed==1){
-								RTC_TimeStructure.Minutes--;
-							}
-							if (leftpressed==1){
-								trav++;
-								if (trav > 7){
-									trav=trav%7 + 1;
-								}
-							}
-						case 3:
-							//print Hours
-							if (uppressed==1){
-								RTC_TimeStructure.Hours++;
-							}
-							if (downpressed==1){
-								RTC_TimeStructure.Hours--;
-							}
-							if (leftpressed==1){
-								trav++;
-								if (trav > 7){
-									trav=trav%7 + 1;
-								}
-							}
-						case 4:
-							//print Weekday
-							if (uppressed==1){
-								RTC_DateStructure.WeekDay++;
-							}
-							if (downpressed==1){
-								RTC_DateStructure.WeekDay--;
-							}
-							if (leftpressed==1){
-								trav++;
-								if (trav > 7){
-									trav=trav%7 + 1;
-								}
-							}
-						case 5:
-							//print Date
-							if (uppressed==1){
-								RTC_DateStructure.Date++;
-							}
-							if (downpressed==1){
-								RTC_DateStructure.Date--;
-							}
-							if (leftpressed==1){
-								trav++;
-								if (trav > 7){
-									trav=trav%7 + 1;
-								}
-							}
-						case 6:
-							//print Month
-							if (uppressed==1){
-								RTC_DateStructure.Month++;
-							}
-							if (downpressed==1){
-								RTC_DateStructure.Month--;
-							}
-							if (leftpressed==1){
-								trav++;
-								if (trav > 7){
-									trav=trav%7 + 1;
-								}
-							}
-						case 7:
-							//print Year
-							if (uppressed==1){
-								RTC_DateStructure.Year++;
-							}
-							if (downpressed==1){
-								RTC_DateStructure.Year--;
-							}
-							if (leftpressed==1){
-								trav++;
-								if (trav > 7){
-									trav=trav%7 + 1;
-								}
-							}
-					}
-				case 2:
-					RTC_Clock_Enable();
+			if (Mode_SetTime == 1) {
+				switch (state) {
+					case 0:
+						BSP_LCD_GLASS_Clear();
+						BSP_LCD_GLASS_DisplayString((uint8_t*)"CASE 0");
+					case 1: 
+						BSP_LCD_GLASS_Clear();
+						BSP_LCD_GLASS_DisplayString((uint8_t*)"CASE 1");
 					
+				} // end of switch
 				
 				
-				
-			} //end of switch					
+			} //end of if		
 		
 
 
