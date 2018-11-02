@@ -664,10 +664,10 @@ void RTC_DateShow(void)
 void Get_Weekday(uint8_t WDAY) {
 	switch (WDAY) {
 		case 0x01:
-				strcpy(weekday,"MOND");
+				strcpy(weekday,"MONDAY");
 				break;
 		case 0x02:
-				strcpy(weekday,"TUESDAYTESTETETETBETIUQBEUTBW");
+				strcpy(weekday,"TUES");
 				break;
 		case 0x03:
 				strcpy(weekday,"WED");
