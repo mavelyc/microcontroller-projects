@@ -107,7 +107,6 @@ void PushButton_Config1(void);
 void PushButton_Config2(void);
 char weekday[20], month[20], output[20];
 void Get_Weekday(uint8_t WDAY);
-void Get_Month(uint8_t MONTH);
 int state, Mode_SetTime;
 void DisplayState(int state);
 
@@ -312,6 +311,7 @@ int main(void)
 					BSP_LCD_GLASS_Clear();
 					RTC_Clock_Enable();
 					Mode_SetTime = 0;
+					state = 0;
 				}
 				push14_pressed = 0;
 			}
@@ -342,52 +342,58 @@ int main(void)
 					
 					case 1: 
 						if (uppressed == 1) {
-							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds++)%59;
+							RTC_TimeStructure.Seconds++;
+							if (RTC_TimeStructure.Seconds == 60) RTC_TimeStructure.Seconds = 0;
 							sprintf(output,"%d",RTC_TimeStructure.Seconds);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
 							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
-							uppressed =0;
+							uppressed = 0;
 						}
 						if (downpressed == 1) {
-							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds--)%59;
+							RTC_TimeStructure.Seconds--;
+							if (RTC_TimeStructure.Seconds == 255) RTC_TimeStructure.Seconds = 59;
 							sprintf(output,"%d",RTC_TimeStructure.Seconds);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
 							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
-							downpressed =0;
+							downpressed = 0;
 						}
 						
 						case 2: 
 						if (uppressed == 1) {
-							RTC_TimeStructure.Minutes = (RTC_TimeStructure.Seconds++)%59;
-							sprintf(output,"%d",RTC_TimeStructure.Seconds);
+							RTC_TimeStructure.Minutes++;
+							if (RTC_TimeStructure.Minutes == 60) RTC_TimeStructure.Minutes = 0;
+							sprintf(output,"%d",RTC_TimeStructure.Minutes);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
 							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
-							uppressed =0;
+							uppressed = 0;
 						}
 						if (downpressed == 1) {
-							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds--)%59;
-							sprintf(output,"%d",RTC_TimeStructure.Seconds);
+							RTC_TimeStructure.Minutes--;
+							if (RTC_TimeStructure.Minutes == 255) RTC_TimeStructure.Minutes = 59;
+							sprintf(output,"%d",RTC_TimeStructure.Minutes);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
 							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
-							downpressed =0;
+							downpressed = 0;
 						}
 						
 						case 3: 
 						if (uppressed == 1) {
-							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds++)%59;
-							sprintf(output,"%d",RTC_TimeStructure.Seconds);
+							RTC_TimeStructure.Hours++;
+							if (RTC_TimeStructure.Hours == 24) RTC_TimeStructure.Hours = 0;
+							sprintf(output,"%d",RTC_TimeStructure.Hours);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
 							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
 							uppressed =0;
 						}
 						if (downpressed == 1) {
-							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds--)%59;
-							sprintf(output,"%d",RTC_TimeStructure.Seconds);
+							RTC_TimeStructure.Hours--;
+							if (RTC_TimeStructure.Hours == 255) RTC_TimeStructure.Hours = 23;
+							sprintf(output,"%d",RTC_TimeStructure.Hours);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
 							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
@@ -396,74 +402,82 @@ int main(void)
 						
 						case 4: 
 						if (uppressed == 1) {
-							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds++)%59;
-							sprintf(output,"%d",RTC_TimeStructure.Seconds);
+							RTC_DateStructure.WeekDay++;
+							if (RTC_DateStructure.WeekDay == 8) RTC_DateStructure.WeekDay = 1;
+							sprintf(output,"%d",RTC_DateStructure.WeekDay);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
-							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
+							HAL_RTC_SetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BIN);
 							uppressed =0;
 						}
-						if (downpressed == 1) {
-							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds--)%59;
-							sprintf(output,"%d",RTC_TimeStructure.Seconds);
+						if (downpressed == 1) {	
+							RTC_DateStructure.WeekDay--;
+							if (RTC_DateStructure.WeekDay == 0) RTC_DateStructure.WeekDay = 7;
+							sprintf(output,"%d",RTC_DateStructure.WeekDay);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
-							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
-							downpressed =0;
+							HAL_RTC_SetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BIN);
+							downpressed = 0;
 						}
 						
 						case 5: 
 						if (uppressed == 1) {
-							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds++)%59;
-							sprintf(output,"%d",RTC_TimeStructure.Seconds);
+							RTC_DateStructure.Date++;
+							if (RTC_DateStructure.Date == 32) RTC_DateStructure.Date = 1;
+							sprintf(output,"%d",RTC_DateStructure.Date);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
-							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
-							uppressed =0;
+							HAL_RTC_SetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BIN);
+							uppressed = 0;
 						}
 						if (downpressed == 1) {
-							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds--)%59;
-							sprintf(output,"%d",RTC_TimeStructure.Seconds);
+							RTC_DateStructure.Date--;
+							if (RTC_DateStructure.Date == 0) RTC_DateStructure.Date = 31;
+							sprintf(output,"%d",RTC_DateStructure.Date);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
-							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
-							downpressed =0;
+							HAL_RTC_SetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BIN);
+							downpressed = 0;
 						}
 						break;
 						
-						case 5: 
+						case 6: 
 						if (uppressed == 1) {
-							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds++)%59;
-							sprintf(output,"%d",RTC_TimeStructure.Seconds);
+							RTC_DateStructure.Month++;
+							if (RTC_DateStructure.Month == 13) RTC_DateStructure.Month = 1;
+							sprintf(output,"%d",RTC_DateStructure.Month);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
-							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
-							uppressed =0;
+							HAL_RTC_SetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BIN);
+							uppressed = 0;
 						}
 						if (downpressed == 1) {
-							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds--)%59;
-							sprintf(output,"%d",RTC_TimeStructure.Seconds);
+							RTC_DateStructure.Month--;
+							if (RTC_DateStructure.Month == 0) RTC_DateStructure.Month = 12;
+							sprintf(output,"%d",RTC_DateStructure.Month);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
-							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
-							downpressed =0;
+							HAL_RTC_SetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BIN);
+							downpressed = 0;
 						}
 						
-						case 1: 
+						case 7: 
 						if (uppressed == 1) {
-							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds++)%59;
-							sprintf(output,"%d",RTC_TimeStructure.Seconds);
+							RTC_DateStructure.Year++;
+							if (RTC_DateStructure.Year == 100) RTC_DateStructure.Year = 0;
+							sprintf(output,"%d",RTC_DateStructure.Year);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
-							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
+							HAL_RTC_SetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BIN);
 							uppressed =0;
 						}
 						if (downpressed == 1) {
-							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds--)%59;
-							sprintf(output,"%d",RTC_TimeStructure.Seconds);
+							RTC_DateStructure.Year--;
+							if (RTC_DateStructure.Year == 255) RTC_DateStructure.Year = 99;
+							sprintf(output,"%d",RTC_DateStructure.Year);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
-							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
+							HAL_RTC_SetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BIN);
 							downpressed =0;
 						}
 				} // end of switch
@@ -627,10 +641,10 @@ void RTC_Config(void) {
 	//****3.***** init the time and 
 				
 					
-				RTC_DateStructure.Year = 0x12; // 2018 in Hexadecmial
-				RTC_DateStructure.Month = RTC_MONTH_OCTOBER;
+				RTC_DateStructure.Year = 0x12; // 18 in Hexadecmial
+				RTC_DateStructure.Month = 0x10;
 				RTC_DateStructure.Date = 0x14;
-				RTC_DateStructure.WeekDay = 0x03;
+				RTC_DateStructure.WeekDay = 0x04;
 				
 				if(HAL_RTC_SetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BIN) != HAL_OK)   //BIN format is better 
 															//before, must set in BCD format and read in BIN format!!
@@ -832,7 +846,7 @@ void RTC_DateShow(void)
 	char DateStamp[50];
 	Get_Weekday(RTC_DateStructure.WeekDay);
 	Get_Month(RTC_DateStructure.Month);
-	sprintf(DateStamp,"      Weekday-%s, Date-%d, Month-%s, Year-%d",weekday,RTC_DateStructure.Date,month,RTC_DateStructure.Year);
+	sprintf(DateStamp,"      WDAY-%s, DATE-%d, MONTH-%d, YEAR-20%d",weekday,RTC_DateStructure.Date,RTC_DateStructure.Month,RTC_DateStructure.Year);
 	BSP_LCD_GLASS_Clear();
 	BSP_LCD_GLASS_ScrollSentence((uint8_t*)DateStamp,1,300);
 
@@ -841,13 +855,13 @@ void RTC_DateShow(void)
 void Get_Weekday(uint8_t WDAY) {
 	switch (WDAY) {
 		case 0x01:
-				strcpy(weekday,"MONDAY");
+				strcpy(weekday,"MON");
 				break;
 		case 0x02:
-				strcpy(weekday,"TUESDAY");
+				strcpy(weekday,"TUES");
 				break;
 		case 0x03:
-				strcpy(weekday,"WEDNESDAY");
+				strcpy(weekday,"WED");
 				break;
 		case 0x04:
 				strcpy(weekday,"THURS");
@@ -864,46 +878,6 @@ void Get_Weekday(uint8_t WDAY) {
 	}
 }
 
-void Get_Month(uint8_t MONTH) {
-		switch (MONTH) {
-		case 0x01:
-				strcpy(month,"JAN");
-				break;
-		case 0x02:
-				strcpy(month,"FEB");
-				break;
-		case 0x03:
-				strcpy(month,"MARCH");
-				break;
-		case 0x04:
-				strcpy(month,"APRIL");
-				break;
-		case 0x05:
-				strcpy(month,"MAY");
-				break;
-		case 0x06:
-				strcpy(month,"JUNE");
-				break;
-		case 0x07:
-				strcpy(month,"JULY");
-				break;
-		case 0x08:
-				strcpy(month,"AUG");
-				break;
-		case 0x09:
-				strcpy(month,"SEPT");
-				break;
-		case 0x10:
-				strcpy(month,"OCT");
-				break;
-		case 0x11:
-				strcpy(month,"NOV");
-				break;
-		case 0x12:
-				strcpy(month,"DEC");
-				break;
-	}
-}
 
 void DisplayState(int state) {
 	BSP_LCD_GLASS_Clear();
