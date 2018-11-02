@@ -103,7 +103,8 @@ void RTC_Clock_Enable(void);
 void RTC_Clock_Disable(void);
 void RTC_TimeShow(void);
 void RTC_DateShow(void);
-void PushButton_Config(void);
+void PushButton_Config1(void);
+void PushButton_Config2(void);
 char weekday[20], month[20], output[20];
 void Get_Weekday(uint8_t WDAY);
 void Get_Month(uint8_t MONTH);
@@ -160,7 +161,8 @@ int main(void)
 	
 	BSP_LCD_GLASS_Init();	
 	BSP_JOY_Init(JOY_MODE_EXTI);
-	PushButton_Config();
+	PushButton_Config1();
+	PushButton_Config2();
 	BSP_LCD_GLASS_DisplayString((uint8_t*)"MT3TA4");	
 	HAL_Delay(1000);
 
@@ -781,7 +783,7 @@ void DisplayState(int state) {
 	}
 }
 
-void PushButton_Config(void)
+void PushButton_Config1(void)
 {
 	__HAL_RCC_GPIOE_CLK_ENABLE();
 	GPIO_InitTypeDef GPIO_InitStruct;
@@ -791,7 +793,21 @@ void PushButton_Config(void)
 	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
 	HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 	
-	HAL_NVIC_SetPriority((IRQn_Type)(EXTI15_10_IRQn), 0x0F, 0x00);
+	HAL_NVIC_SetPriority((IRQn_Type)(EXTI15_10_IRQn), 2, 0);
+	HAL_NVIC_EnableIRQ((IRQn_Type)(EXTI15_10_IRQn));
+}
+
+void PushButton_Config2(void)
+{
+	__HAL_RCC_GPIOE_CLK_ENABLE();
+	GPIO_InitTypeDef GPIO_InitStruct;
+	GPIO_InitStruct.Pin = GPIO_PIN_13;
+	GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+	HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+	
+	HAL_NVIC_SetPriority((IRQn_Type)(EXTI15_10_IRQn), 2, 0);
 	HAL_NVIC_EnableIRQ((IRQn_Type)(EXTI15_10_IRQn));
 }
 
