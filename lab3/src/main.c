@@ -104,15 +104,14 @@ void RTC_Clock_Disable(void);
 void RTC_TimeShow(void);
 void RTC_DateShow(void);
 void PushButton_Config(void);
-char weekday[20];
-char month[20];
+char weekday[20], month[20], output[20];
 void Get_Weekday(uint8_t WDAY);
 void Get_Month(uint8_t MONTH);
 int state, Mode_SetTime;
 
 
 //cmave inits
-int move;
+
 
 
 /* Private functions ---------------------------------------------------------*/
@@ -301,7 +300,7 @@ int main(void)
 			if (push14_pressed==1) {
 				if (Mode_SetTime == 0) {
 					BSP_LCD_GLASS_Clear();
-					RTC_Clock_Disable();
+					//RTC_Clock_Disable();
 					Mode_SetTime = 1;
 				}
 				else {
@@ -315,12 +314,24 @@ int main(void)
 			if (Mode_SetTime == 1) {
 				switch (state) {
 					case 0:
-						BSP_LCD_GLASS_Clear();
-						BSP_LCD_GLASS_DisplayString((uint8_t*)"CASE 0");
+						//BSP_LCD_GLASS_Clear();
+						//BSP_LCD_GLASS_DisplayString((uint8_t*)"SEC");
+						if (uppressed == 1) {
+							HAL_RTC_GetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
+							HAL_RTC_GetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BIN);
+							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds +1)%60;
+							//RTC_TimeStructure.Seconds++;
+							BSP_LCD_GLASS_Clear();
+							sprintf(output,"%d",RTC_TimeStructure.Seconds);
+							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
+							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
+							uppressed =0;
+						}
+						break;
 					case 1: 
 						BSP_LCD_GLASS_Clear();
-						//BSP_LCD_GLASS_DisplayString((uint8_t*)"CASE 1");
-					
+						BSP_LCD_GLASS_DisplayString((uint8_t*)"SECONDS");
+						break;
 				} // end of switch
 				
 				
@@ -621,18 +632,14 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 						break;
 			case GPIO_PIN_3:
 						uppressed=1;						
-						BSP_LCD_GLASS_Clear();
-						BSP_LCD_GLASS_DisplayString((uint8_t*)"up");
 						break;
-			
 			case GPIO_PIN_5:    //down button		
 						downpressed=1;
-						BSP_LCD_GLASS_Clear();
-						BSP_LCD_GLASS_DisplayString((uint8_t*)"down");
 						break;
 			case GPIO_PIN_14:    //down button						
+						RTC_Clock_Disable();
 						push14_pressed=1;
-							break;			
+						break;			
 			default://
 						//default
 						break;
