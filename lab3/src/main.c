@@ -174,12 +174,14 @@ int main(void)
 	I2C_Init(&pI2c_Handle);
 
 
-/*********************Testing I2C EEPROM------------------
-
-	//the following variables are for testging I2C_EEPROM
+//the following variables are for testging I2C_EEPROM
 	uint8_t data1 =0x67,  data2=0x68;
 	uint8_t readData=0x00;
 	uint16_t EE_status;
+
+
+
+/*********************Testing I2C EEPROM------------------
 
 
 	EE_status=I2C_ByteWrite(&pI2c_Handle,EEPROM_ADDRESS, memLocation, data1);
@@ -317,7 +319,12 @@ int main(void)
 			
 			
 			if (push13_pressed==1){
-				
+				EE_status=I2C_ByteWrite(&pI2c_Handle,EEPROM_ADDRESS, memLocation, RTC_TimeStructure.Seconds);
+				memLocation++;
+				EE_status=I2C_ByteWrite(&pI2c_Handle,EEPROM_ADDRESS, memLocation, RTC_TimeStructure.Minutes);
+				memLocation++;
+				EE_status=I2C_ByteWrite(&pI2c_Handle,EEPROM_ADDRESS, memLocation, RTC_TimeStructure.Hours);
+				memLocation++;
 				
 				
 			}
@@ -369,7 +376,16 @@ int main(void)
   */
 
 
+void ReadEE (void){
+	hh=I2C_ByteRead(&pI2c_Handle,EEPROM_ADDRESS, memLocation-1);
+	mm=I2C_ByteRead(&pI2c_Handle,EEPROM_ADDRESS, memLocation-2);
+	ss=I2C_ByteRead(&pI2c_Handle,EEPROM_ADDRESS, memLocation-3);
+	BSP_LCD_GLASS_Clear();
+	sprintf(output,"%02d%02d%02d",hh,mm,ss);
+	BSP_LCD_GLASS_DisplayString((uint8_t*)output);
 
+
+}
 void SystemClock_Config(void)
 { 
 	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
