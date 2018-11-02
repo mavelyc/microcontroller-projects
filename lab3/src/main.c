@@ -274,29 +274,29 @@ int main(void)
 					selpressed=0;
 			} 
 //==============================================================		
-			if (downpressed==1){
-				downpressed = 0;
-			}
+			//if (downpressed==1){
+				//downpressed = 0;
+			//}
 
 //==============================================================		 
 			if (leftpressed==1) {
 				if (Mode_SetTime == 1) {
-					state++;
 					if (state == 7) state = 1; // BORDER CASE
+					else state++;
 					DisplayState(state);
+					leftpressed=0;
 				}
-				leftpressed=0;
 			}			
 //==============================================================			
 
 //==============================================================							
 			if (rightpressed==1) {
 				if (Mode_SetTime == 1) {
-					state--;
 					if (state == 1) state = 7; // BORDER CASE
+					else state--;
 					DisplayState(state);
+					rightpressed=0;
 				}
-				rightpressed=0;
 			}
 //==============================================================			
 
@@ -339,16 +339,133 @@ int main(void)
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)"SET");
 						break;
+					
 					case 1: 
 						if (uppressed == 1) {
 							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds++)%59;
-							BSP_LCD_GLASS_Clear();
 							sprintf(output,"%d",RTC_TimeStructure.Seconds);
+							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
 							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
 							uppressed =0;
 						}
+						if (downpressed == 1) {
+							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds--)%59;
+							sprintf(output,"%d",RTC_TimeStructure.Seconds);
+							BSP_LCD_GLASS_Clear();
+							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
+							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
+							downpressed =0;
+						}
+						
+						case 2: 
+						if (uppressed == 1) {
+							RTC_TimeStructure.Minutes = (RTC_TimeStructure.Seconds++)%59;
+							sprintf(output,"%d",RTC_TimeStructure.Seconds);
+							BSP_LCD_GLASS_Clear();
+							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
+							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
+							uppressed =0;
+						}
+						if (downpressed == 1) {
+							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds--)%59;
+							sprintf(output,"%d",RTC_TimeStructure.Seconds);
+							BSP_LCD_GLASS_Clear();
+							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
+							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
+							downpressed =0;
+						}
+						
+						case 3: 
+						if (uppressed == 1) {
+							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds++)%59;
+							sprintf(output,"%d",RTC_TimeStructure.Seconds);
+							BSP_LCD_GLASS_Clear();
+							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
+							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
+							uppressed =0;
+						}
+						if (downpressed == 1) {
+							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds--)%59;
+							sprintf(output,"%d",RTC_TimeStructure.Seconds);
+							BSP_LCD_GLASS_Clear();
+							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
+							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
+							downpressed =0;
+						}
+						
+						case 4: 
+						if (uppressed == 1) {
+							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds++)%59;
+							sprintf(output,"%d",RTC_TimeStructure.Seconds);
+							BSP_LCD_GLASS_Clear();
+							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
+							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
+							uppressed =0;
+						}
+						if (downpressed == 1) {
+							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds--)%59;
+							sprintf(output,"%d",RTC_TimeStructure.Seconds);
+							BSP_LCD_GLASS_Clear();
+							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
+							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
+							downpressed =0;
+						}
+						
+						case 5: 
+						if (uppressed == 1) {
+							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds++)%59;
+							sprintf(output,"%d",RTC_TimeStructure.Seconds);
+							BSP_LCD_GLASS_Clear();
+							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
+							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
+							uppressed =0;
+						}
+						if (downpressed == 1) {
+							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds--)%59;
+							sprintf(output,"%d",RTC_TimeStructure.Seconds);
+							BSP_LCD_GLASS_Clear();
+							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
+							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
+							downpressed =0;
+						}
 						break;
+						
+						case 5: 
+						if (uppressed == 1) {
+							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds++)%59;
+							sprintf(output,"%d",RTC_TimeStructure.Seconds);
+							BSP_LCD_GLASS_Clear();
+							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
+							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
+							uppressed =0;
+						}
+						if (downpressed == 1) {
+							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds--)%59;
+							sprintf(output,"%d",RTC_TimeStructure.Seconds);
+							BSP_LCD_GLASS_Clear();
+							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
+							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
+							downpressed =0;
+						}
+						
+						case 1: 
+						if (uppressed == 1) {
+							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds++)%59;
+							sprintf(output,"%d",RTC_TimeStructure.Seconds);
+							BSP_LCD_GLASS_Clear();
+							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
+							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
+							uppressed =0;
+						}
+						if (downpressed == 1) {
+							RTC_TimeStructure.Seconds = (RTC_TimeStructure.Seconds--)%59;
+							sprintf(output,"%d",RTC_TimeStructure.Seconds);
+							BSP_LCD_GLASS_Clear();
+							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
+							HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
+							downpressed =0;
+						}
 				} // end of switch
 				
 				
