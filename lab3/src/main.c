@@ -99,17 +99,17 @@ void RTC_Config(void);
 void RTC_AlarmAConfig(void);
 
 // Custom prototypes
-void RTC_Clock_Enable(void);// Custom function that Enables the clock
-void RTC_Clock_Disable(void);// Custom function that Disables the clock
-void RTC_TimeShow(void);//prints the time on the LCD
-void RTC_DateShow(void);//prints the date on the LCD
-void PushButton_Config1(void);//Inits external push button connected to PE14
-void PushButton_Config2(void);//Inits external push button connected to PE13
-char weekday[20], month[20], output[20];//glabals for printing and storing
-void Get_Weekday(uint8_t WDAY);//Function that turns hex value and prints weekday string
-int state, Mode_SetTime, count, push13_pressed;//counters for different states
-void DisplayState(int state);
-void ReadEE (void);//Function used to read the EEPROM
+void RTC_Clock_Enable(void);											// Custom function that Enables the clock
+void RTC_Clock_Disable(void);											// Custom function that Disables the clock
+void RTC_TimeShow(void);													// prints the time on the LCD
+void RTC_DateShow(void);													// prints the date on the LCD
+void PushButton_Config1(void);										// Inits external push button connected to PE14
+void PushButton_Config2(void);										// Inits external push button connected to PE13
+char weekday[20], month[20], output[20];					// globals for printing and storing
+void Get_Weekday(uint8_t WDAY);										// Function that turns hex value and prints weekday string
+int state, Mode_SetTime, count, push13_pressed;		// counters for different states
+void DisplayState(int state);											// Displays current state on LCD
+void ReadEE (void);																// Function used to read the EEPROM
 
 
 
@@ -134,25 +134,22 @@ int main(void)
        - Low Level Initialization
      */
 
-	leftpressed=0;// all initializations of counters for different states
+	leftpressed=0;// all initializations of counters and states
 	rightpressed=0;
 	uppressed=0;
 	downpressed=0;
 	selpressed=0;
 	sel_held=0;
 	push14_pressed=0;
+	push13_pressed =0;
 	Mode_SetTime = 0;
 	state=0;
 	count=0;
 	mem=memLocation;
-	push13_pressed =0;
 	
-
 	HAL_Init();
-	
 	BSP_LED_Init(LED4);
 	BSP_LED_Init(LED5);
-  
 	SystemClock_Config();   
 	
 											
@@ -173,14 +170,14 @@ int main(void)
 	I2C_Init(&pI2c_Handle);
 
 
-//the following variables are for testging I2C_EEPROM
+//the following variables are for testing I2C_EEPROM
 	uint8_t readData=0x00;
 	uint16_t EE_status;
 
 
 
 /*********************Testing I2C EEPROM------------------
-
+// test code to see if circuit is functional
 
 	EE_status=I2C_ByteWrite(&pI2c_Handle,EEPROM_ADDRESS, memLocation, data1);
 
@@ -250,9 +247,9 @@ int main(void)
 					SEL_Pressed_StartTick=HAL_GetTick(); 
 					while(BSP_JOY_GetState() == JOY_SEL) {  //while the selection button is pressed)	
 						if ((HAL_GetTick()-SEL_Pressed_StartTick)>800) {
-								RTC_Clock_Disable();
-								BSP_LED_On(LED4);
-								BSP_LED_Off(LED5);
+								RTC_Clock_Disable();							// Display the Date when the Select button is held for more than 0.8s
+								BSP_LED_On(LED4);									// Clock is disabled at the beggining so that the normal time show does not interupt
+								BSP_LED_Off(LED5);								// LED enable for debugging
 								RTC_DateShow();
 								BSP_LED_Off(LED4);
 								RTC_Clock_Enable();
@@ -267,53 +264,60 @@ int main(void)
 			//}
 
 //==============================================================					
-			if (selpressed==1)  {
+			//if (selpressed==1)  {
 	
-					selpressed=0;
-			} 
+					//selpressed=0;
+			//} 
 //==============================================================		
 			//if (downpressed==1){
 				//downpressed = 0;
 			//}
 
 //==============================================================		 
+			//Two cases in which Left Button is used, if else structure used to distuingiush them
+			//First case is when user is navigating through the set mode menu
+			//Second is to display the last 2 saved times
+			
 			if (leftpressed==1) {
-				if (Mode_SetTime == 1) {
-					if (state == 7) state = 1; // BORDER CASE
-					else state++;
-					DisplayState(state);
-					leftpressed=0;
+				if (Mode_SetTime == 1) {     	// If program is already in Set Time Mode
+					if (state == 7) state = 1; 	// BORDER CASE, states are from 1 to 7
+					else state++;              	// Increment state
+					DisplayState(state);				// Display new state
+					leftpressed=0;							// Reset the button, also breaks
 				}else{
-				BSP_LCD_GLASS_Clear();// When the left button is pressed when not in Mode_SetTime
-				ReadEE();							// The function to read and display the EEPROM
-				leftpressed=0;				// resets the button state
+				BSP_LCD_GLASS_Clear();				// When the left button is pressed when not in Mode_SetTime
+				ReadEE();											// The function to read and display the EEPROM
+				leftpressed=0;								// Reset the button, also breaks
 				}
 			}			
 //==============================================================			
 
 //==============================================================							
-			if (rightpressed==1) {
-				if (Mode_SetTime == 1) {
-					if (state == 1) state = 7; // BORDER CASE
-					else state--;
-					DisplayState(state);
-					rightpressed=0;
+			// Right button is only used for navigation through set mode menu
+			if (rightpressed==1) {  			
+				if (Mode_SetTime == 1) {			// If program is already in Set Time Mode
+					if (state == 1) state = 7; 	// BORDER CASE, states are from 1 to 7
+					else state--;								// Decrement state
+					DisplayState(state);				// Display new state
+					rightpressed=0;							// Reset the button, also breaks
 				}
 			}
 //==============================================================			
 
 //==============================================================						
-			if (push14_pressed==1) {
-				if (Mode_SetTime == 0) {
-					RTC_Clock_Disable();
+			// push 14 is external button used to enter and exit set time mode
+			// if else strucutre to distingush whether to enter or exit
+			
+			if (push14_pressed==1) { 
+				if (Mode_SetTime == 0) {																// Enter set time mode, as we are not already in set time mode
+					RTC_Clock_Disable();																	// Disable the clock
 					BSP_LCD_GLASS_Clear();
-					BSP_LCD_GLASS_DisplayString((uint8_t*)"SET");
 					Mode_SetTime = 1;
 				}
-				else {
-					BSP_LCD_GLASS_Clear();
-					RTC_Clock_Enable();
-					Mode_SetTime = 0;
+				else {																									// Exit set time mode, we are already in set time mode
+					BSP_LCD_GLASS_Clear();																// Enable the clock
+					RTC_Clock_Enable();																		// Set time and date to the user selected values																							// Reset state to 
+					Mode_SetTime = 0;																			// Reset state so that set time mode will behave the same next time we enter
 					state = 0;
 					RTC_TimeStructure.Seconds = ss;
 					RTC_TimeStructure.Minutes = mm;
@@ -325,7 +329,7 @@ int main(void)
 					HAL_RTC_SetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
 					HAL_RTC_SetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BIN);
 				}
-				push14_pressed = 0;
+				push14_pressed = 0;																			// Reset the button, also breaks
 			}
 			
 	/*Pressing the external push button connected to PE13 will write to the EEPROM, toggling an LED to ensure 
@@ -362,26 +366,26 @@ The memLocation is incremented each time.  The clock is disabled prior to the wr
 			
 			
 			
-			
+			//FSM for set time mode
 			if (Mode_SetTime == 1) {
 				switch (state) {
-					case 0:
+					case 0:																								// INTRO
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)"SET");
 						break;
 					
-					case 1: 
-						if (uppressed == 1) {
+					case 1:																								// SECONDS (0 to 60)
+						if (uppressed == 1) {																// Increment current value
 							ss++;
-							if (ss >= 60) ss = 0;
+							if (ss >= 60) ss = 0;															// Handler for border case
 							sprintf(output,"%d",ss);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
 							uppressed = 0;
 						}
-						if (downpressed == 1) {
+						if (downpressed == 1) {															// Decrement current value
 							ss--;
-							if (ss == 255) ss = 59;
+							if (ss == 255) ss = 59;														// Handler for border case (255 value will be reached after 0)
 							sprintf(output,"%d",ss);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
@@ -389,18 +393,18 @@ The memLocation is incremented each time.  The clock is disabled prior to the wr
 						}
 						break;
 						
-						case 2: 
-						if (uppressed == 1) {
-							mm++;
-							if (mm >= 60) mm = 0;
+						case 2:																								// MINUTES (0 to 60)
+						if (uppressed == 1) {																	// Increment current value
+							mm++;																								
+							if (mm >= 60) mm = 0;																// Handler for border case
 							sprintf(output,"%d",mm);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
 							uppressed = 0;
 						}
-						if (downpressed == 1) {
+						if (downpressed == 1) {																// Decrement current value
 							mm--;
-							if (mm == 255) mm = 59;
+							if (mm == 255) mm = 59;															// Handler for border case (255 value will be reached after 0)
 							sprintf(output,"%d",mm);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
@@ -408,18 +412,18 @@ The memLocation is incremented each time.  The clock is disabled prior to the wr
 						}
 						break;
 						
-						case 3: 
-						if (uppressed == 1) {
+						case 3:																								// HOURS (0 to 60)
+						if (uppressed == 1) {																	// Increment current value
 							hh++;
-							if (hh == 24) hh = 0;
+							if (hh == 24) hh = 0;																// Handler for border case
 							sprintf(output,"%d",hh);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
 							uppressed =0;
 						}
-						if (downpressed == 1) {
+						if (downpressed == 1) {																// Decrement current value
 							hh--;
-							if (hh == 255) hh = 23;
+							if (hh == 255) hh = 23;															// Handler for border case (255 value will be reached after 0)
 							sprintf(output,"%d",hh);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
@@ -427,18 +431,18 @@ The memLocation is incremented each time.  The clock is disabled prior to the wr
 						}
 						break;
 						
-						case 4: 
-						if (uppressed == 1) {
+						case 4:																								// WEEKDAY (1 to 7)
+						if (uppressed == 1) {																	// Increment current value
 							wd++;
-							if (wd == 8) wd = 1;
+							if (wd == 8) wd = 1;																// Handler for border case
 							sprintf(output,"%d",wd);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
 							uppressed =0;
 						}
-						if (downpressed == 1) {	
+						if (downpressed == 1) {																// Decrement current value
 							wd--;
-							if (wd == 0) wd = 7;
+							if (wd == 0) wd = 7;																// Handler for border case
 							sprintf(output,"%d",wd);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
@@ -446,18 +450,18 @@ The memLocation is incremented each time.  The clock is disabled prior to the wr
 						}
 						break;
 						
-						case 5: 
-						if (uppressed == 1) {
+						case 5:																								// DATE (1 to 31)
+						if (uppressed == 1) {																	// Increment current value
 							dd++;
-							if (dd == 32) dd = 1;
+							if (dd == 32) dd = 1;																// Handler for border case
 							sprintf(output,"%d",dd);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
 							uppressed = 0;
 						}
-						if (downpressed == 1) {
+						if (downpressed == 1) {																// Decrement current value
 							dd--;
-							if (dd == 0) dd = 31;
+							if (dd == 0) dd = 31;																// Handler for border case
 							sprintf(output,"%d",RTC_DateStructure.Date);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
@@ -465,18 +469,18 @@ The memLocation is incremented each time.  The clock is disabled prior to the wr
 						}
 						break;
 
-						case 6: 
-						if (uppressed == 1) {
+						case 6:																								// MONTH (1 to 12)
+						if (uppressed == 1) {																	// Increment current value
 							mo++;
-							if (mo == 13) mo = 1;
+							if (mo == 13) mo = 1;																// Handler for border case
 							sprintf(output,"%d",mo);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
 							uppressed = 0;
 						}
-						if (downpressed == 1) {
+						if (downpressed == 1) {																// Decrement current value
 							mo--;
-							if (mo == 0) mo = 12;
+							if (mo == 0) mo = 12;																// Handler for border case
 							sprintf(output,"%d",mo);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
@@ -484,18 +488,18 @@ The memLocation is incremented each time.  The clock is disabled prior to the wr
 						}
 						break;
 						
-						case 7: 
-						if (uppressed == 1) {
+						case 7:																								// YEAR 20(00 to 99)
+						if (uppressed == 1) {																	// Increment current value
 							yy++;
-							if (yy == 100) yy = 0;
+							if (yy == 100) yy = 0;															// Handler for border case
 							sprintf(output,"%d",yy);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
 							uppressed =0;
 						}
-						if (downpressed == 1) {
+						if (downpressed == 1) {																// Decrement current value
 							yy--;
-							if (yy == 255) yy = 99;
+							if (yy == 255) yy = 99;															// Handler for border case (255 value will be reached after 0)
 							sprintf(output,"%d",yy);
 							BSP_LCD_GLASS_Clear();
 							BSP_LCD_GLASS_DisplayString((uint8_t*)output);
@@ -511,7 +515,6 @@ The memLocation is incremented each time.  The clock is disabled prior to the wr
 
 	}
 }
-
 
 /**
   * @brief  System Clock Configuration
@@ -659,8 +662,8 @@ void RTC_Config(void) {
 				RTCHandle.Instance = RTC;
 				RTCHandle.Init.HourFormat = RTC_HOURFORMAT_24;//We chose the 24 hour format
 				
-				RTCHandle.Init.AsynchPrediv = 0x7F;
-				RTCHandle.Init.SynchPrediv = 0xFF; 
+				RTCHandle.Init.AsynchPrediv = 0x7F;						// Divisors that set the clock rate to 1 second
+				RTCHandle.Init.SynchPrediv = 0xFF;
 				
 				
 				RTCHandle.Init.OutPut = RTC_OUTPUT_DISABLE;
@@ -679,11 +682,11 @@ void RTC_Config(void) {
 	
 	//****3.***** init the time and 
 				
-					
-				RTC_DateStructure.Year = 0x12; // Set all the dates in Hexadecmial
-				RTC_DateStructure.Month = 0x10;
-				RTC_DateStructure.Date = 0x14;
-				RTC_DateStructure.WeekDay = 0x04;
+				// Set all the dates in Hexadecmial
+				RTC_DateStructure.Year = 0x12;  	// 18 to represent 2018
+				RTC_DateStructure.Month = 0x10; 	// October as per RTC_Month_Date_Definitions
+				RTC_DateStructure.Date = 0x14;  	// 20
+				RTC_DateStructure.WeekDay = 0x04; // Thursday as per RTC_WeekDay_Definitions
 				
 				if(HAL_RTC_SetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BIN) != HAL_OK)   //BIN format is better 
 															//before, must set in BCD format and read in BIN format!!
@@ -693,7 +696,7 @@ void RTC_Config(void) {
 				} 
   
   
-				RTC_TimeStructure.Hours = 0;  //These are all initialized to 0
+				RTC_TimeStructure.Hours = 0;  //These are all initialized to 0 at the beggining 
 				RTC_TimeStructure.Minutes = 0; 
 				RTC_TimeStructure.Seconds = 0;
 				RTC_TimeStructure.TimeFormat = RTC_FORMAT_BIN;
@@ -814,55 +817,51 @@ HAL_StatusTypeDef  RTC_AlarmA_IT_Enable(RTC_HandleTypeDef *hrtc)
   * @param GPIO_Pin: Specifies the pins connected EXTI line
   * @retval None
   */
+
+// function called when a button is pressed, correseponding variable is set to 1 for use in while(1) loop
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
   switch (GPIO_Pin) {
-			case GPIO_PIN_0:     //SELECT button					
+			case GPIO_PIN_0:				//SELECT button					
 						selpressed=1;	
 						break;	
-			case GPIO_PIN_1:     //left button						
+			case GPIO_PIN_1:				//left button						
 						leftpressed=1;
 						break;
-			case GPIO_PIN_2:    //right button
+			case GPIO_PIN_2:				//right button
 						rightpressed=1;			
 						break;
-			case GPIO_PIN_3:
+			case GPIO_PIN_3:    		// up botton
 						uppressed=1;						
 						break;
-			case GPIO_PIN_5:    //down button		
+			case GPIO_PIN_5:    		//down button		
 						downpressed=1;
 						break;
-			case GPIO_PIN_14:    //external push button						
-						RTC_Clock_Disable();//disables the clock
+			case GPIO_PIN_14:    		//external push button1	for set mode time			
 						push14_pressed=1;
 						break;	
-			case GPIO_PIN_13:// external push button
+			case GPIO_PIN_13:				//external push button2 to save current time to EEPROM
 						push13_pressed=1;
-			default://
-						//default
-						break;
 	  } 
 }
 
 
 
-
-void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)// this function calls the Alarm event everysecond through interrupts therefore updating the time
+void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)// this function calls the Alarm event every second through interrupts therefore updating the time
 {
-  BSP_LED_Toggle(LED5);
+  BSP_LED_Toggle(LED5); // Toggling LED for debugging clock status
 	RTC_TimeShow();
-	
 }
 
-void RTC_Clock_Enable(void)// Enables the clock and shuts off LED4
+void RTC_Clock_Enable(void)// Enables the clock
 {
 RTC_AlarmA_IT_Enable(&RTCHandle);
-BSP_LED_Off(LED5);
 }
 
-void RTC_Clock_Disable(void)// Disables the clock
+void RTC_Clock_Disable(void)// Disables the clock and debug LED
 {
 RTC_AlarmA_IT_Disable(&RTCHandle);
+BSP_LED_Off(LED5);
 }
 
 
@@ -889,7 +888,7 @@ void RTC_DateShow(void)// Prints the date on the LCD
 
 }
 
-void Get_Weekday(uint8_t WDAY) {// switch case for printing the day instead of a hexadecimal representation of the date
+void Get_Weekday(uint8_t WDAY) {				// switch case for printing the day instead of a hexadecimal representation of the date
 	switch (WDAY) {
 		case 0x01:
 				strcpy(weekday,"MON");
@@ -916,7 +915,7 @@ void Get_Weekday(uint8_t WDAY) {// switch case for printing the day instead of a
 }
 
 
-void DisplayState(int state) {//displays the state of which value you choose to set as you traverse left and right
+void DisplayState(int state) {		//displays the state of which value you choose to set as you traverse left and right
 	BSP_LCD_GLASS_Clear();
 	switch (state) {
 		case 1: 
@@ -943,15 +942,15 @@ void DisplayState(int state) {//displays the state of which value you choose to 
 	}
 }
 
-void PushButton_Config1(void)//Configured the push button the set the time
+void PushButton_Config1(void)													//Configured the push button the set the time
 {
 	__HAL_RCC_GPIOE_CLK_ENABLE();
 	GPIO_InitTypeDef GPIO_InitStruct;
-	GPIO_InitStruct.Pin = GPIO_PIN_14;// init to pin14
+	GPIO_InitStruct.Pin = GPIO_PIN_14;									// init to pin14
 	GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-	GPIO_InitStruct.Pull = GPIO_PULLDOWN;//pull down for external debouncing with a capacitor
-	HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+	GPIO_InitStruct.Pull = GPIO_PULLDOWN;								//pull down for external debouncing with a capacitor
+	HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);	
 	
 	HAL_NVIC_SetPriority((IRQn_Type)(EXTI15_10_IRQn), 2, 0);
 	HAL_NVIC_EnableIRQ((IRQn_Type)(EXTI15_10_IRQn));
@@ -961,10 +960,10 @@ void PushButton_Config2(void)
 {
 	__HAL_RCC_GPIOE_CLK_ENABLE();
 	GPIO_InitTypeDef GPIO_InitStruct;
-	GPIO_InitStruct.Pin = GPIO_PIN_13;// init to pin13
+	GPIO_InitStruct.Pin = GPIO_PIN_13;									// init to pin13
 	GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-	GPIO_InitStruct.Pull = GPIO_PULLDOWN;// pulldown for external debouncing with a capacitor
+	GPIO_InitStruct.Pull = GPIO_PULLDOWN;								// pulldown for external debouncing with a capacitor
 	HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 	
 	HAL_NVIC_SetPriority((IRQn_Type)(EXTI15_10_IRQn), 2, 0);
