@@ -79,12 +79,12 @@ __IO uint16_t mem;
   
 
 char lcd_buffer[6];    // LCD display buffer
-char timestring[10]={0};  //   
+char timestring[10]={0};   
 char datestring[6]={0};
 
 
 
-uint8_t wd, dd, mo, yy, ss, mm, hh; // for weekday, day, month, year, second, minute, hour
+uint8_t wd, dd, mo, yy, ss, mm, hh; //for weekday, day, month, year, second, minute, hour
 
 __IO uint32_t SEL_Pressed_StartTick;   //sysTick when the User button is pressed
 
@@ -99,22 +99,18 @@ void RTC_Config(void);
 void RTC_AlarmAConfig(void);
 
 // Custom prototypes
-void RTC_Clock_Enable(void);
-void RTC_Clock_Disable(void);
-void RTC_TimeShow(void);
-void RTC_DateShow(void);
-void PushButton_Config1(void);
-void PushButton_Config2(void);
-char weekday[20], month[20], output[20];
-void Get_Weekday(uint8_t WDAY);
-int state, Mode_SetTime;
+void RTC_Clock_Enable(void);// Custom function that Enables the clock
+void RTC_Clock_Disable(void);// Custom function that Disables the clock
+void RTC_TimeShow(void);//prints the time on the LCD
+void RTC_DateShow(void);//prints the date on the LCD
+void PushButton_Config1(void);//Inits external push button connected to PE14
+void PushButton_Config2(void);//Inits external push button connected to PE13
+char weekday[20], month[20], output[20];//glabals for printing and storing
+void Get_Weekday(uint8_t WDAY);//Function that turns hex value and prints weekday string
+int state, Mode_SetTime, count, push13_pressed;//counters for different states
 void DisplayState(int state);
-void ReadEE (void);
+void ReadEE (void);//Function used to read the EEPROM
 
-
-//cmave inits
-int push13_pressed;
-int count;
 
 
 
@@ -138,7 +134,7 @@ int main(void)
        - Low Level Initialization
      */
 
-	leftpressed=0;
+	leftpressed=0;// all initializations of counters for different states
 	rightpressed=0;
 	uppressed=0;
 	downpressed=0;
@@ -149,7 +145,6 @@ int main(void)
 	state=0;
 	count=0;
 	mem=memLocation;
-
 	push13_pressed =0;
 	
 
@@ -168,7 +163,7 @@ int main(void)
 	BSP_JOY_Init(JOY_MODE_EXTI);
 	PushButton_Config1();
 	PushButton_Config2();
-	BSP_LCD_GLASS_DisplayString((uint8_t*)"MT3TA4");	
+	BSP_LCD_GLASS_DisplayString((uint8_t*)"MT3TA4");	// first display on the LCD when reset
 	HAL_Delay(1000);
 
 
@@ -289,9 +284,9 @@ int main(void)
 					DisplayState(state);
 					leftpressed=0;
 				}else{
-				BSP_LCD_GLASS_Clear();
-				ReadEE();
-				leftpressed=0;
+				BSP_LCD_GLASS_Clear();// When the left button is pressed when not in Mode_SetTime
+				ReadEE();							// The function to read and display the EEPROM
+				leftpressed=0;				// resets the button state
 				}
 			}			
 //==============================================================			
@@ -333,8 +328,10 @@ int main(void)
 				push14_pressed = 0;
 			}
 			
-			
-			
+	/*Pressing the external push button connected to PE13 will write to the EEPROM, toggling an LED to ensure 
+that something has been written as well as displaying the string SAVED on the LCD screen to triple check.
+The memLocation is incremented each time.  The clock is disabled prior to the write and enabled after the write.			
+	*/		
 			if (push13_pressed==1){
 				HAL_RTC_GetTime(&RTCHandle, &RTC_TimeStructure, RTC_FORMAT_BIN);
 				HAL_RTC_GetDate(&RTCHandle, &RTC_DateStructure, RTC_FORMAT_BIN);
@@ -532,10 +529,11 @@ int main(void)
   */
 
 
+
+//The function to read the EEPROM.  The clock is disabled prior to and enabled after the function.
+//%02d is used to fill the 10s place of a digit even though it is a singled digit ex. 01
 void ReadEE (void){
 	RTC_Clock_Disable();
-	//HAL_RTC_GetTime(&RTCHandle, &RTC_TimeStructure, RTC_FORMAT_BIN);
-  //HAL_RTC_GetDate(&RTCHandle, &RTC_DateStructure, RTC_FORMAT_BIN);
 	hh=I2C_ByteRead(&pI2c_Handle,EEPROM_ADDRESS, memLocation-4);
 	HAL_Delay(10);
 	mm=I2C_ByteRead(&pI2c_Handle,EEPROM_ADDRESS, memLocation-5);
@@ -553,7 +551,7 @@ void ReadEE (void){
 	ss=I2C_ByteRead(&pI2c_Handle,EEPROM_ADDRESS, memLocation-3);
 	HAL_Delay(10);
 	sprintf(output,"     TIME2=%02d%02d%02d",hh,mm,ss);
-	BSP_LCD_GLASS_ScrollSentence((uint8_t*)output,1,300);
+	BSP_LCD_GLASS_ScrollSentence((uint8_t*)output,1,300);//displays a sentence that scrolls across the LCD
 	RTC_Clock_Enable();
 
 
@@ -659,7 +657,7 @@ void RTC_Config(void) {
 		
 	
 				RTCHandle.Instance = RTC;
-				RTCHandle.Init.HourFormat = RTC_HOURFORMAT_24;
+				RTCHandle.Init.HourFormat = RTC_HOURFORMAT_24;//We chose the 24 hour format
 				
 				RTCHandle.Init.AsynchPrediv = 0x7F;
 				RTCHandle.Init.SynchPrediv = 0xFF; 
@@ -682,7 +680,7 @@ void RTC_Config(void) {
 	//****3.***** init the time and 
 				
 					
-				RTC_DateStructure.Year = 0x12; // 18 in Hexadecmial
+				RTC_DateStructure.Year = 0x12; // Set all the dates in Hexadecmial
 				RTC_DateStructure.Month = 0x10;
 				RTC_DateStructure.Date = 0x14;
 				RTC_DateStructure.WeekDay = 0x04;
@@ -695,7 +693,7 @@ void RTC_Config(void) {
 				} 
   
   
-				RTC_TimeStructure.Hours = 0;  
+				RTC_TimeStructure.Hours = 0;  //These are all initialized to 0
 				RTC_TimeStructure.Minutes = 0; 
 				RTC_TimeStructure.Seconds = 0;
 				RTC_TimeStructure.TimeFormat = RTC_FORMAT_BIN;
@@ -819,14 +817,13 @@ HAL_StatusTypeDef  RTC_AlarmA_IT_Enable(RTC_HandleTypeDef *hrtc)
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
   switch (GPIO_Pin) {
-			case GPIO_PIN_0: 		               //SELECT button					
+			case GPIO_PIN_0:     //SELECT button					
 						selpressed=1;	
 						break;	
 			case GPIO_PIN_1:     //left button						
 						leftpressed=1;
-						count= (count+1)%2;
 						break;
-			case GPIO_PIN_2:    //right button						  to play again.
+			case GPIO_PIN_2:    //right button
 						rightpressed=1;			
 						break;
 			case GPIO_PIN_3:
@@ -835,11 +832,11 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			case GPIO_PIN_5:    //down button		
 						downpressed=1;
 						break;
-			case GPIO_PIN_14:    //down button						
-						RTC_Clock_Disable();
+			case GPIO_PIN_14:    //external push button						
+						RTC_Clock_Disable();//disables the clock
 						push14_pressed=1;
 						break;	
-			case GPIO_PIN_13:
+			case GPIO_PIN_13:// external push button
 						push13_pressed=1;
 			default://
 						//default
@@ -850,26 +847,26 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 
 
-void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)
+void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)// this function calls the Alarm event everysecond through interrupts therefore updating the time
 {
   BSP_LED_Toggle(LED5);
 	RTC_TimeShow();
 	
 }
 
-void RTC_Clock_Enable(void)
+void RTC_Clock_Enable(void)// Enables the clock and shuts off LED4
 {
 RTC_AlarmA_IT_Enable(&RTCHandle);
 BSP_LED_Off(LED5);
 }
 
-void RTC_Clock_Disable(void)
+void RTC_Clock_Disable(void)// Disables the clock
 {
 RTC_AlarmA_IT_Disable(&RTCHandle);
 }
 
 
-void RTC_TimeShow(void)
+void RTC_TimeShow(void)// Prints the time on the LCD
 {
 	HAL_RTC_GetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
 	HAL_RTC_GetDate(&RTCHandle,&RTC_DateStructure,RTC_FORMAT_BIN);
@@ -879,7 +876,7 @@ void RTC_TimeShow(void)
 	BSP_LCD_GLASS_DisplayString((uint8_t*)TimeStamp);
 }
 
-void RTC_DateShow(void)
+void RTC_DateShow(void)// Prints the date on the LCD
 {
 
 	HAL_RTC_GetTime(&RTCHandle,&RTC_TimeStructure,RTC_FORMAT_BIN);
@@ -892,7 +889,7 @@ void RTC_DateShow(void)
 
 }
 
-void Get_Weekday(uint8_t WDAY) {
+void Get_Weekday(uint8_t WDAY) {// switch case for printing the day instead of a hexadecimal representation of the date
 	switch (WDAY) {
 		case 0x01:
 				strcpy(weekday,"MON");
@@ -919,7 +916,7 @@ void Get_Weekday(uint8_t WDAY) {
 }
 
 
-void DisplayState(int state) {
+void DisplayState(int state) {//displays the state of which value you choose to set as you traverse left and right
 	BSP_LCD_GLASS_Clear();
 	switch (state) {
 		case 1: 
@@ -946,14 +943,14 @@ void DisplayState(int state) {
 	}
 }
 
-void PushButton_Config1(void)
+void PushButton_Config1(void)//Configured the push button the set the time
 {
 	__HAL_RCC_GPIOE_CLK_ENABLE();
 	GPIO_InitTypeDef GPIO_InitStruct;
-	GPIO_InitStruct.Pin = GPIO_PIN_14;
+	GPIO_InitStruct.Pin = GPIO_PIN_14;// init to pin14
 	GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+	GPIO_InitStruct.Pull = GPIO_PULLDOWN;//pull down for external debouncing with a capacitor
 	HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 	
 	HAL_NVIC_SetPriority((IRQn_Type)(EXTI15_10_IRQn), 2, 0);
@@ -964,10 +961,10 @@ void PushButton_Config2(void)
 {
 	__HAL_RCC_GPIOE_CLK_ENABLE();
 	GPIO_InitTypeDef GPIO_InitStruct;
-	GPIO_InitStruct.Pin = GPIO_PIN_13;
+	GPIO_InitStruct.Pin = GPIO_PIN_13;// init to pin13
 	GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+	GPIO_InitStruct.Pull = GPIO_PULLDOWN;// pulldown for external debouncing with a capacitor
 	HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 	
 	HAL_NVIC_SetPriority((IRQn_Type)(EXTI15_10_IRQn), 2, 0);
