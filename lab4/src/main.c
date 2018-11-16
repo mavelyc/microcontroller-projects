@@ -494,9 +494,9 @@ void Show_New_Setpoint(void) {
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
   switch (GPIO_Pin) {
-			case GPIO_PIN_0: 		               //SELECT button					
-						selpressed++;
-						selpressed%=2;
+			case GPIO_PIN_0: 		 //SELECT button					
+						selpressed++;		// Increments selpressed by 1 each time
+						selpressed%=2;  // Once selpressed is larger than 1 it will change to 0, therefore toggling selpressed between 0 and 1 
 						break;	
 			case GPIO_PIN_1:     //left button						
 				
@@ -505,11 +505,11 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 						
 							break;
 			case GPIO_PIN_3:    //up button							
-							uppressed=1;
+							uppressed=1; // Changes uppresed to 1
 							break;
 			
 			case GPIO_PIN_5:    //down button						
-							downpressed=1;
+							downpressed=1; // Changes downpressed to 1
 							break;
 			
 			
@@ -525,31 +525,31 @@ void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef * htim) //see  stm32XXX_h
 	
 		switch (selpressed){
 			case 1:
-				BSP_LED_Off(LED4);
-				BSP_LCD_GLASS_Clear();
+				BSP_LED_Off(LED4); //Turns off LED4 to ensure we are in setting mode
+				BSP_LCD_GLASS_Clear(); //Clears the LCD
 				//BSP_LCD_GLASS_DisplayString((uint8_t *)"TEMP SET");
 				//HAL_Delay(3000);
 				sprintf(str,"T-%f",setPoint);
 				BSP_LCD_GLASS_Clear();
 				BSP_LCD_GLASS_DisplayString((uint8_t *)str);
 				if (uppressed==1){
-				setPoint+=0.5;
+				setPoint+=0.5; //increments the setPoint by 0.5 degrees up
 				BSP_LCD_GLASS_Clear();
 				sprintf(str,"T-%f",setPoint);
-				BSP_LCD_GLASS_DisplayString((uint8_t *)str);
-				uppressed=0;
+				BSP_LCD_GLASS_DisplayString((uint8_t *)str); //Displays the new setPoint everytime it is changed
+				uppressed=0; // Decrements uppressed back to 0
 				}
 				if (downpressed==1){
-				setPoint-=0.5;
+				setPoint-=0.5; // decrements the setPoint by 0.5 degrees dowm
 				BSP_LCD_GLASS_Clear();
 				sprintf(str,"T-%f",setPoint);
-				BSP_LCD_GLASS_DisplayString((uint8_t *)str);
-				downpressed=0;
+				BSP_LCD_GLASS_DisplayString((uint8_t *)str); // Displays the new setPoint on the LCD
+				downpressed=0; //Decrements downpressed back to 0
 				}
 				break;
 			case 0:
-				BSP_LED_Toggle(LED4);
-				Show_Temperature();
+				BSP_LED_Toggle(LED4); // when not in setting mode LED4 Toggles
+				Show_Temperature(); //Shows the temperature reading from the temp sensor, after conversion
 				break;
 		}
 }
