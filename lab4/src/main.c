@@ -452,7 +452,7 @@ void Show_Temperature(void) {
 	
 	*/
 	
-	measuredTemp=0.02442*ADC1ConvertedValue;
+	measuredTemp=0.02442*ADC1ConvertedValue;//converts the value using the constant
 	
 	sprintf(lcd_buffer,"T%5.2f",measuredTemp);
 	//sprintf(lcd_buffer,"%5d",ADC1ConvertedValue);
@@ -461,7 +461,7 @@ void Show_Temperature(void) {
 	
 
 }
-
+/*
 void Show_New_Setpoint(void) {
 	
 //	BSP_LCD_GLASS_Clear();
@@ -472,7 +472,7 @@ void Show_New_Setpoint(void) {
 	BSP_LCD_GLASS_DisplayString((uint8_t *)lcd_buffer);
 	
 }
-
+*/
 
 /**
   * @brief EXTI line detection callbacks
@@ -482,7 +482,7 @@ void Show_New_Setpoint(void) {
 
 
 	//BSP_LED_On(LED5);
-	int uppressed=0;
+	int uppressed=0; //Initialized variables corresponding to the external interrupts on the joy stick
 	int downpressed=0;
 	int selpressed=0;
 
