@@ -74,8 +74,8 @@ __IO uint16_t          TIM4_CCR1_Val=0;  // for pulse width!!! can vary it from 
 
 uint16_t               TIM3_Prescaler;   
 __IO uint16_t          TIM3_CCR4_Val;   //make it interrupt every 500 ms, halfsecond.
-uint16_t MAX = 1000;										//The max value for TIM4_CCR1_Val (PWM) 
-uint8_t scaleval = 250;
+uint16_t MAX = 1000;										//The max value for TIM4_CCR1_Val (PWM duty cycle 100%) 
+uint8_t scaleval = 250;									//The lowest value to make the fan turn on (PWM duty cycle 25%)
 
 
 __IO uint32_t          ADC1ConvertedValue;   //if declare it as 16t, it will not work.
@@ -159,17 +159,17 @@ int main(void)
 	// Loop to check whether or not to turn on fan
   while (1)
   {		
-				if(measuredTemp>setPoint){		// Only runs when the current temperature is greater than the user setpoint
-					TIM4_CCR1_Val= scaleval*(measuredTemp-setPoint);
+				if(measuredTemp>setPoint){														// Only runs when the current temperature is greater than the user setpoint
+					TIM4_CCR1_Val= scaleval*(measuredTemp-setPoint);		// Minmum difference of 1 degree C to turn on fan 
 					
-					if(TIM4_CCR1_Val>=MAX){
+					if(TIM4_CCR1_Val>=MAX){															// After a certain temperature difference, fan speed is set to max
 						TIM4_CCR1_Val = MAX;
 					}
-						__HAL_TIM_SET_COMPARE(&Tim4_Handle,TIM_CHANNEL_1,TIM4_CCR1_Val);
+						__HAL_TIM_SET_COMPARE(&Tim4_Handle,TIM_CHANNEL_1,TIM4_CCR1_Val); // Setting PWM duty cycle to the calculated value
 			
-					} else {
+					} else {																						// Fan should be off
 						TIM4_CCR1_Val= 0;
-						__HAL_TIM_SET_COMPARE(&Tim4_Handle,TIM_CHANNEL_1,TIM4_CCR1_Val);
+						__HAL_TIM_SET_COMPARE(&Tim4_Handle,TIM_CHANNEL_1,TIM4_CCR1_Val); // Setting PWM duty cycle to 0
 					}
 	}
 }
