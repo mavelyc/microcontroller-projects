@@ -157,17 +157,17 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef *htim)
   __HAL_RCC_TIM4_CLK_ENABLE();
     
   // Enable GPIO Port Clocks 
-  __HAL_RCC_GPIOB_CLK_ENABLE();   //use PB6 pin
+  __HAL_RCC_GPIOB_CLK_ENABLE();   //PB6 pin
   
     
   // Common configuration for all channels 
   GPIO_InitStruct.Mode 			= GPIO_MODE_AF_PP;
   GPIO_InitStruct.Pull 			= GPIO_PULLUP;
-  GPIO_InitStruct.Speed 		= GPIO_SPEED_HIGH; //???? 50MHz, 25Mhz...don't know what is the critics to select pin speed.
-  GPIO_InitStruct.Alternate = GPIO_AF2_TIM4;  //as for which AF, see table "alternate function mapping" in datasheet
-																					    //P74,  table 16. 
-  // Channel 2 output 
-  GPIO_InitStruct.Pin = GPIO_PIN_6;
+  GPIO_InitStruct.Speed 		= GPIO_SPEED_HIGH; 
+  GPIO_InitStruct.Alternate = GPIO_AF2_TIM4;   //set to TIM4 input
+  
+	// Channel 2 output 
+  GPIO_InitStruct.Pin = GPIO_PIN_6; //Sets to PB6
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
  
@@ -199,14 +199,14 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
  /* Enable GPIO clock */
   __HAL_RCC_GPIOA_CLK_ENABLE();   // for ADC1_IN 6, the pin is PA1
 
-  GPIO_InitStruct.Pin 		= GPIO_PIN_1;
-  GPIO_InitStruct.Mode 		= GPIO_MODE_ANALOG_ADC_CONTROL; //can not be:  GPIO_MODE_ANALOG;
-  GPIO_InitStruct.Pull 		= GPIO_NOPULL;
-	GPIO_InitStruct.Speed		= GPIO_SPEED_FREQ_HIGH;
+  GPIO_InitStruct.Pin 		= GPIO_PIN_1; // set to PA1
+  GPIO_InitStruct.Mode 		= GPIO_MODE_ANALOG_ADC_CONTROL; //as per the lab ref docs;
+  GPIO_InitStruct.Pull 		= GPIO_NOPULL; // set to nopull
+	GPIO_InitStruct.Speed		= GPIO_SPEED_FREQ_HIGH; 
 	
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-	HAL_NVIC_SetPriority(ADC1_IRQn, 3, 0);		// 2,3,4?
+	HAL_NVIC_SetPriority(ADC1_IRQn, 3, 0);
   HAL_NVIC_EnableIRQ(ADC1_IRQn);
 
 
@@ -218,12 +218,12 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
   
   hdma_adc.Init.Request  								= DMA_REQUEST_0;
 	
-	hdma_adc.Init.Direction 							= DMA_PERIPH_TO_MEMORY;
-  hdma_adc.Init.PeriphInc 							= DMA_PINC_DISABLE;
-  hdma_adc.Init.MemInc 									= DMA_MINC_ENABLE;   				
+	hdma_adc.Init.Direction 							= DMA_PERIPH_TO_MEMORY; 				
   hdma_adc.Init.PeriphDataAlignment 		= DMA_PDATAALIGN_WORD;  
   hdma_adc.Init.MemDataAlignment 				= DMA_MDATAALIGN_WORD;
   hdma_adc.Init.Mode 										= DMA_CIRCULAR;
+	hdma_adc.Init.PeriphInc 							= DMA_PINC_DISABLE;
+  hdma_adc.Init.MemInc 									= DMA_MINC_ENABLE;  
   hdma_adc.Init.Priority 								= DMA_PRIORITY_MEDIUM;	
  
   HAL_DMA_DeInit(&hdma_adc);
