@@ -69,18 +69,19 @@ TIM_OC_InitTypeDef     Tim3_OCInitStructure, Tim4_OCInitStructure;
 uint16_t               TIM4Prescaler;    // will set it to make the timer's counter run at 10Khz. ---50 ticks is 1ms.
 uint16_t               TIM4Period;       //will make a period to be 20ms. ----1000 ticks
 __IO uint16_t          TIM4_CCR1_Val=0;  // for pulse width!!! can vary it from 1 to 1000 to vary the pulse width.
-																  // the CCR value must be less than period. otherwise, the interrupt will never happen.
-																	//duty cycle need to >25% to make fan run (CCR1_VaL need to >250).
+																				// the CCR value must be less than period. otherwise, the interrupt will never happen.
+																				//duty cycle need to >25% to make fan run (CCR1_VaL need to >250).
 
 uint16_t               TIM3_Prescaler;   
 __IO uint16_t          TIM3_CCR4_Val;   //make it interrupt every 500 ms, halfsecond.
-uint16_t MAX = 1000;
+uint16_t MAX = 1000;										//The max value for TIM4_CCR1_Val (PWM) 
+uint8_t scaleval = 250;
 
 
 __IO uint32_t          ADC1ConvertedValue;   //if declare it as 16t, it will not work.
 
 
-volatile double  setPoint=23.5;
+volatile double  setPoint=26;								// setting the initial setpoint to a value higher than normal room temperature
 
 double measuredTemp; 
 
@@ -155,13 +156,10 @@ int main(void)
 	
 	
   /* Infinite loop */
+	// Loop to check whether or not to turn on fan
   while (1)
-  {
-		
-
-					
-				if(measuredTemp>setPoint){			// piecewise function when measuredTemp is greater than
-					uint8_t scaleval = 250;			// setPoint, duty cycle increased linearly with slope scaling_val
+  {		
+				if(measuredTemp>setPoint){		// Only runs when the current temperature is greater than the user setpoint
 					TIM4_CCR1_Val= scaleval*(measuredTemp-setPoint);
 					
 					if(TIM4_CCR1_Val>=MAX){
@@ -172,12 +170,9 @@ int main(void)
 					} else {
 						TIM4_CCR1_Val= 0;
 						__HAL_TIM_SET_COMPARE(&Tim4_Handle,TIM_CHANNEL_1,TIM4_CCR1_Val);
+					}
 	}
-
-			
-
 }
-	}
 
 
 
