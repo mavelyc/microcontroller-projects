@@ -218,9 +218,15 @@ void EXTI9_5_IRQHandler (void)
 //void EXTI5_IRQHandler (void)  //will not work!
 {
 	HAL_GPIO_EXTI_IRQHandler(DOWN_JOY_PIN);  //PA5
+	HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_8);  //PE8
 }
 
-
+void EXTI15_10_IRQHandler (void)
+//void EXTI5_IRQHandler (void)  //will not work!
+{
+	HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_14);
+	HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_15);
+}
 
 
 void ADC1_IRQHandler(void){     //there is no ADC_IRQHandler.
